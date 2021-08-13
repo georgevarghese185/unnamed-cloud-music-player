@@ -7,7 +7,9 @@
   "license": "MPL-2.0",
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue ./",
-    "test": "echo \"No test specified\" && exit 0",
+    "test": "jest --updateSnapshot",
+    "test:watch": "jest --watch",
+    "test:unit:coverage": "jest --coverage",
     "prepare": "husky install",
     "lint-staged": "lint-staged"
   },
@@ -20,6 +22,8 @@
   "devDependencies": {
     "@babel/eslint-parser": "^7.13.14",
     "@quasar/app": "^3.0.0",
+    "@quasar/quasar-app-extension-testing": "^1.0.3",
+    "@quasar/quasar-app-extension-testing-unit-jest": "^2.2.2",
     "@types/node": "^10.17.15",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
@@ -28,7 +32,8 @@
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-vue": "^7.0.0",
     "husky": "^7.0.1",
-    "prettier": "^2.3.2"
+    "prettier": "^2.3.2",
+    "eslint-plugin-jest": "^24.1.0"
   },
   "browserslist": [
     "last 10 Chrome versions",
