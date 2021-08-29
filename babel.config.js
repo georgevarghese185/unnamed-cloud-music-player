@@ -1,4 +1,10 @@
 /* eslint-env node */
+const fs = require('fs-extra');
+let extend = undefined;
+
+if (fs.existsSync('./.babelrc')) {
+  extend = './.babelrc';
+}
 
 module.exports = api => {
   return {
@@ -9,7 +15,8 @@ module.exports = api => {
           ? { targets: { node: 'current' } }
           : {}
       ]
-    ]
+    ],
+    extends: extend,
   }
 }
 

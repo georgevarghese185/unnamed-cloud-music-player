@@ -3,12 +3,13 @@
    - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-  <router-view />
+  <q-page></q-page>
 </template>
+
 <script lang="ts">
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-  name: 'App',
+  name: 'Library',
 });
 </script>
