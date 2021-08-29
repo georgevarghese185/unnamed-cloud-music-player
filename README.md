@@ -1,26 +1,51 @@
-# Unnamed Cloud Music Player (unnamed-cloud-music-player)
+# Unnamed Cloud Music Player
 
 A cross platform cloud backed music player
 
-## Install the dependencies
-```bash
-yarn
+## Unnamed?
+
+Yes, I haven't thought of a name yet. I don't have a very good track record when it comes to completing hobby projects so a dedicated name is a little too much commitment for me right now...
+
+## What is this project?
+
+The plan is to create a cross-platform music player app that can
+
+1. Play songs stored locally on your device
+
+2. Play songs stored on cloud storage (Google Drive, OneDrive, Dropbox etc..)
+
+3. Sync your library, playlists and queue activity across devices so that you can pick up where you left off anywhere, anytime
+
+4. And more.. maybe
+
+## Current progress
+
+Just a blank page. The app runs as a Single Page web app and an Electron app.
+
+## Run the project
+
+1. Install Node.js and Yarn
+
+2. Install dependencies
+
+```sh
+yarn install
 ```
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
-```bash
+3. Install Quasar CLI
+
+```sh
+yarn global add @quasar/cli@
+```
+
+### Run web app:
+
+```sh
 quasar dev
 ```
 
-### Lint the files
-```bash
-yarn run lint
-```
+### Run electron app
 
-### Build the app for production
-```bash
-quasar build
+```sh
+quasar dev -m electron
 ```
-
-### Customize the configuration
-See [Configuring quasar.conf.js](https://v2.quasar.dev/quasar-cli/quasar-conf-js).
