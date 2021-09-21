@@ -1,5 +1,6 @@
 export interface DeviceStorage {
-  listFiles(path: string): Promise<DeviceFile[]>;
+  listFiles(dir: Directory): Promise<DeviceFile[]>;
+  getFile(path: string): Promise<DeviceFile>;
 }
 
 export type DeviceFile = File | Directory;

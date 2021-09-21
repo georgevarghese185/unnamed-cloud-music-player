@@ -1,6 +1,7 @@
 import { ImportProgress } from 'app/src-core/library';
 import { Track } from 'app/src-core/library/track';
 import { TrackImportError } from 'app/src-core/library/track-importer';
+import { Directory } from 'app/src-core/storage/device';
 import { trackExpectation } from './expectation';
 import { createDeviceLibraryFixture } from './fixture';
 
@@ -95,11 +96,11 @@ describe('Device source', () => {
     const listFilesOriginal = deviceStorage.listFiles.bind(deviceStorage);
     const spy = jest.spyOn(deviceStorage, 'listFiles');
 
-    spy.mockImplementation(async (path: string) => {
-      if (path === '/folder/errorFolder') {
+    spy.mockImplementation(async (dir: Directory) => {
+      if (dir.path === '/folder/errorFolder') {
         throw new Error('Permission denied');
       } else {
-        return listFilesOriginal(path);
+        return listFilesOriginal(dir);
       }
     });
 
@@ -126,6 +127,28 @@ describe('Device source', () => {
       completed: true,
       imported: 2,
       errors: [errorExpectation],
+    } as ImportProgress);
+  });
+
+  it('should record an error if the selected file is not a supported audio file', async () => {
+    const { deviceStorage, deviceSource, library } =
+      createDeviceLibraryFixture();
+
+    deviceStorage.fs.writeFileSync('/notAsong.txt', '0');
+
+    const importer = await deviceSource.import('/notAsong.txt');
+    const job = await library.import(importer);
+
+    const finalProgress = await new Promise<ImportProgress>((resolve) =>
+      job.on('complete', resolve),
+    );
+
+    expect(finalProgress).toEqual({
+      completed: true,
+      errors: [
+        new TrackImportError('Not a supported audio file', '/notAsong.txt'),
+      ],
+      imported: 0,
     } as ImportProgress);
   });
 });
