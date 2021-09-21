@@ -151,4 +151,40 @@ describe('Device source', () => {
       imported: 0,
     } as ImportProgress);
   });
+
+  it('should handle multiple selected files/folders', async () => {
+    const { deviceStorage, deviceSource, library, trackStore } =
+      createDeviceLibraryFixture();
+
+    deviceStorage.fs.writeFileSync('/song1.mp3', '0');
+    deviceStorage.fs.writeFileSync('/song2.mp3', '0');
+    deviceStorage.fs.mkdirSync('/folder');
+    deviceStorage.fs.mkdirSync('/folder/subfolder');
+    deviceStorage.fs.writeFileSync('/folder/song3.mp3', '0');
+    deviceStorage.fs.writeFileSync('/folder/subfolder/song4.mp3', '0');
+
+    const importer = await deviceSource.import(
+      '/song1.mp3',
+      '/song2.mp3',
+      '/folder',
+    );
+    const job = await library.import(importer);
+
+    const finalProgress = await new Promise<ImportProgress>((resolve) =>
+      job.on('complete', resolve),
+    );
+
+    expect(finalProgress).toEqual({
+      completed: true,
+      imported: 4,
+      errors: [],
+    } as ImportProgress);
+
+    expect(trackStore.tracks).toEqual([
+      trackExpectation('/song1.mp3'),
+      trackExpectation('/song2.mp3'),
+      trackExpectation('/folder/song3.mp3'),
+      trackExpectation('/folder/subfolder/song4.mp3'),
+    ]);
+  });
 });
