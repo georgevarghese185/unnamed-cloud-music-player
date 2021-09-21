@@ -5,7 +5,7 @@ import { Directory } from 'app/src-core/storage/device';
 import { trackExpectation } from './expectation';
 import { createDeviceLibraryFixture } from './fixture';
 
-describe('Device source', () => {
+describe('Import from device source', () => {
   it('should import a single track from a device source', async () => {
     const { trackStore, deviceStorage, deviceSource, library } =
       createDeviceLibraryFixture();
