@@ -1,36 +1,41 @@
-import { DeviceStorage, Directory, File } from 'app/src-core/storage/device';
+import {
+  DeviceFile,
+  DeviceStorage,
+  Directory,
+} from 'app/src-core/storage/device';
 import MemoryFileSystem from 'memory-fs';
 import { basename, join, extname } from 'path';
 
 type StatType = ReturnType<InstanceType<typeof MemoryFileSystem>['statSync']>;
 
-const toDeviceDir = (parentPath: string, file: string): Directory => {
-  return {
-    name: file,
-    path: join(parentPath, file),
-    isDir: true,
-  };
-};
+const toDeviceFile = (filePath: string, isDir: boolean): DeviceFile => {
+  const path = filePath;
+  const name = basename(filePath);
 
-const toDeviceFile = (filePath: string): File => {
-  return {
-    path: filePath,
-    name: basename(filePath),
-    ext: extname(filePath),
-    isDir: false,
-  };
+  return isDir
+    ? ({ path, name, isDir: true } as Directory)
+    : { path, name, ext: extname(filePath), isDir: false };
 };
 
 export class MockDeviceStorage implements DeviceStorage {
   public fs = new MemoryFileSystem();
 
-  async listFiles(path: string) {
-    if ((await this.stat(path)).isDirectory()) {
-      const files: string[] = await this.readdir(path);
-      return Promise.all(files.map((file) => toDeviceDir(path, file)));
-    } else {
-      return [toDeviceFile(path)];
-    }
+  async listFiles(dir: Directory) {
+    const files: string[] = await this.readdir(dir.path);
+    return Promise.all(
+      files.map(async (file) => {
+        const path = join(dir.path, file);
+        return toDeviceFile(path, await this.isDir(path));
+      }),
+    );
+  }
+
+  async getFile(path: string) {
+    return toDeviceFile(path, await this.isDir(path));
+  }
+
+  private async isDir(path: string): Promise<boolean> {
+    return (await this.stat(path)).isDirectory();
   }
 
   private async stat(path: string): Promise<StatType> {
