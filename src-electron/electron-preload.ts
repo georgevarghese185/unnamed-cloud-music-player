@@ -3,9 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { contextBridge } from 'electron';
+import { bridge } from './bridge-api';
 
-contextBridge.exposeInMainWorld('myAPI', {
-  doAThing: () => {
-    console.log(process.env);
-  },
-});
+contextBridge.exposeInMainWorld('bridge', bridge);
