@@ -4,7 +4,7 @@ import {
   Directory,
 } from 'app/src-core/storage/device';
 import MemoryFileSystem from 'memory-fs';
-import { basename, join, extname } from 'path';
+import { basename, extname } from 'path';
 
 type StatType = ReturnType<InstanceType<typeof MemoryFileSystem>['statSync']>;
 
@@ -24,7 +24,7 @@ export class MockDeviceStorage implements DeviceStorage {
     const files: string[] = await this.readdir(dir.path);
     return Promise.all(
       files.map(async (file) => {
-        const path = join(dir.path, file);
+        const path = `${dir.path}/${file}`;
         return toDeviceFile(path, await this.isDir(path));
       }),
     );
