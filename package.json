@@ -17,6 +17,8 @@
     "@quasar/extras": "^1.0.0",
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
+    "dexie": "^3.0.3",
+    "lodash": "^4.17.21",
     "quasar": "^2.0.0"
   },
   "devDependencies": {
@@ -24,6 +26,7 @@
     "@quasar/app": "^3.0.0",
     "@quasar/quasar-app-extension-testing": "^1.0.3",
     "@quasar/quasar-app-extension-testing-unit-jest": "^2.2.2",
+    "@types/lodash": "^4.14.178",
     "@types/memory-fs": "^0.3.3",
     "@types/node": "^10.17.15",
     "@types/rimraf": "^3.0.2",
@@ -35,6 +38,7 @@
     "eslint-plugin-jest": "^24.1.0",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-vue": "^7.0.0",
+    "fake-indexeddb": "^3.1.7",
     "husky": "^7.0.1",
     "memory-fs": "^0.5.0",
     "prettier": "^2.3.2",

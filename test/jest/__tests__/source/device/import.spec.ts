@@ -2,7 +2,7 @@ import { ImportProgress } from 'app/src-core/library';
 import { Track } from 'app/src-core/library/track';
 import { TrackImportError } from 'app/src-core/library/track-importer';
 import { Directory } from 'app/src-core/storage/device';
-import { trackExpectation } from './expectation';
+import { deviceTrackExpectation } from '../../shared/expectation/track';
 import { createDeviceLibraryFixture } from './fixture';
 
 describe('Import from device source', () => {
@@ -20,7 +20,7 @@ describe('Import from device source', () => {
 
     expect(progress.completed).toEqual(true);
     expect(progress.imported).toEqual(1);
-    expect(trackStore.tracks).toEqual([trackExpectation('/test.mp3')]);
+    expect(trackStore.tracks).toEqual([deviceTrackExpectation('/test.mp3')]);
   });
 
   it('should scan a folder recursively and import all music files', async () => {
@@ -67,10 +67,10 @@ describe('Import from device source', () => {
 
     // assert track list correctness
     const expectedTracks = [
-      trackExpectation('/folder/song1.mp3'),
-      trackExpectation('/folder/song2.mp3'),
-      trackExpectation('/folder/subfolder1/song3.ogg'),
-      trackExpectation('/folder/subfolder1/song4.aac'),
+      deviceTrackExpectation('/folder/song1.mp3'),
+      deviceTrackExpectation('/folder/song2.mp3'),
+      deviceTrackExpectation('/folder/subfolder1/song3.ogg'),
+      deviceTrackExpectation('/folder/subfolder1/song4.aac'),
     ];
 
     expect(trackStore.tracks.length).toEqual(4);
@@ -181,10 +181,10 @@ describe('Import from device source', () => {
     } as ImportProgress);
 
     expect(trackStore.tracks).toEqual([
-      trackExpectation('/song1.mp3'),
-      trackExpectation('/song2.mp3'),
-      trackExpectation('/folder/song3.mp3'),
-      trackExpectation('/folder/subfolder/song4.mp3'),
+      deviceTrackExpectation('/song1.mp3'),
+      deviceTrackExpectation('/song2.mp3'),
+      deviceTrackExpectation('/folder/song3.mp3'),
+      deviceTrackExpectation('/folder/subfolder/song4.mp3'),
     ]);
   });
 });
