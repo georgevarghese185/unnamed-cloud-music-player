@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const FDBFactory = require('fake-indexeddb/lib/FDBFactory');
+import { MockLibraryDatabase } from 'app/test/jest/mock/mock-library-database';
 import { deviceTrackExpectation } from '../../../shared/expectation/track';
 import { createTracks } from './fixture';
 import { IndexedDbTrackStore } from 'src/library/store/indexed-db/track';
@@ -11,7 +10,7 @@ describe('IndexedDB track store', () => {
   let store: IndexedDbTrackStore;
 
   beforeEach(() => {
-    db = new LibraryDatabase(new FDBFactory());
+    db = new MockLibraryDatabase();
     store = new IndexedDbTrackStore(db);
   });
 
