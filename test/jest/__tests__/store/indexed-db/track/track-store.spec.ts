@@ -30,4 +30,26 @@ describe('IndexedDB track store', () => {
     expect(insertedTracks).toEqual(songPaths.map(deviceTrackExpectation));
     expect(insertedIdentifiers).toEqual(identifiersExpectation(insertedTracks));
   });
+
+  it('should find tracks by identifiers', async () => {
+    const tracks = createTracks([
+      '/folder/Song1.mp3',
+      '/folder/Song2.mp3',
+      '/folder/Song3.mp3',
+    ]);
+
+    await store.add(tracks);
+
+    const tracksToFind = [tracks[0], tracks[2]];
+    const foundTracks = await store.findByIdentifiers([
+      tracksToFind[0].identifiers[0],
+      tracksToFind[1].identifiers[0],
+    ]);
+
+    expect(foundTracks).toEqual(
+      tracksToFind.map((track) =>
+        deviceTrackExpectation(track.source.meta.filePath),
+      ),
+    );
+  });
 });
