@@ -1,7 +1,8 @@
 import EventEmitter from 'events';
+import { differenceWith } from 'lodash';
 import { Player } from '../player';
 import { TrackStore } from './store/track';
-import { Track } from './track';
+import { eqIdentifiers, getIdentifiers, Track } from './track';
 import { TrackImporter, TrackImportError } from './track-importer';
 
 export interface ImportJob {
@@ -89,8 +90,12 @@ export class Library {
       const [tracks, errors] = split(imports);
 
       if (tracks.length) {
-        await trackStore.add(tracks);
-        job.onImport(tracks);
+        const newTracks = await this.findNewTracks(trackStore, tracks);
+
+        if (newTracks.length) {
+          await trackStore.add(newTracks);
+          job.onImport(newTracks);
+        }
       }
 
       if (errors.length) {
@@ -99,6 +104,19 @@ export class Library {
     }
 
     job.onComplete();
+  }
+
+  /** Removes any tracks that have already been imported previously */
+  private async findNewTracks(
+    trackStore: TrackStore,
+    tracks: Track[],
+  ): Promise<Track[]> {
+    const existingTracks = await trackStore.findByIdentifiers(
+      getIdentifiers(...tracks),
+    );
+    const newTracks = differenceWith(tracks, existingTracks, eqIdentifiers);
+
+    return newTracks;
   }
 }
 
