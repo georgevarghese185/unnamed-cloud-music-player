@@ -1,7 +1,8 @@
 import { Track } from 'app/src-core/library';
 import { TrackStore } from 'app/src-core/library/store/track';
-import { flatMap, omit } from 'lodash';
+import { compact, flatMap, omit } from 'lodash';
 import { LibraryDatabase } from './db';
+import { Identifier } from 'app/src-core/library/track';
 
 export class IndexedDbTrackStore implements TrackStore {
   constructor(protected db: LibraryDatabase) {}
@@ -9,6 +10,16 @@ export class IndexedDbTrackStore implements TrackStore {
   async add(tracks: Track<any>[]): Promise<void> {
     const insertedTracks = await this.addTracks(tracks);
     await this.addIdentifiersFrom(insertedTracks);
+  }
+
+  async findByIdentifiers(identifiers: Identifier[]): Promise<Track<any>[]> {
+    const trackIdentifiers = await this.db.identifiers
+      .where('[name+value]')
+      .anyOf(identifiers.map((id) => [id.name, id.value]))
+      .toArray();
+    const trackIds = compact(trackIdentifiers).map((id) => id?.trackId);
+    const tracks = await this.db.tracks.bulkGet(trackIds);
+    return compact(tracks);
   }
 
   private async addTracks(tracks: Track[]): Promise<Track[]> {
