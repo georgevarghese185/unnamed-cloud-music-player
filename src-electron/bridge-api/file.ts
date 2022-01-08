@@ -1,31 +1,6 @@
-import { DeviceFile, Directory, File } from 'app/src-core/storage/device';
-import { readdir, stat } from 'fs';
-import { basename, extname, join } from 'path';
-import { promisify } from 'util';
+import { NodeFsDeviceStorage } from '../storage/device/node-fs-device-storage';
 
-const isDirectory = async (path: string) => {
-  const fileStat = await promisify(stat)(path);
-  return fileStat.isDirectory();
-};
+const storage = new NodeFsDeviceStorage();
 
-export const listFiles = async (dir: Directory): Promise<DeviceFile[]> => {
-  const files = await promisify(readdir)(dir.path);
-  return Promise.all(files.map((file) => getFile(join(dir.path, file))));
-};
-
-export const getFile = async (path: string): Promise<DeviceFile> => {
-  if (await isDirectory(path)) {
-    return {
-      isDir: true,
-      name: basename(path),
-      path,
-    } as Directory;
-  } else {
-    return {
-      ext: extname(path),
-      isDir: false,
-      name: basename(path),
-      path,
-    } as File;
-  }
-};
+export const listFiles = storage.listFiles.bind(storage);
+export const getFile = storage.getFile.bind(storage);

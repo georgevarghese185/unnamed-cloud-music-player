@@ -1,10 +1,16 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const FakeIndexedDbFactory = require('fake-indexeddb/lib/FDBFactory');
 import { Track } from 'app/src-core/library';
-import { TrackStore } from 'app/src-core/library/store/track';
+import { LibraryDatabase } from 'src/library/store/indexed-db/db';
+import { IndexedDbTrackStore } from 'src/library/store/indexed-db/track';
 
-export class MockTrackStore implements TrackStore {
-  tracks: Track[] = [];
+export class MockTrackStore extends IndexedDbTrackStore {
+  constructor() {
+    const indexedDb = new FakeIndexedDbFactory();
+    super(new LibraryDatabase(indexedDb));
+  }
 
-  async add(tracks: Track[]) {
-    this.tracks = this.tracks.concat(tracks);
+  getAllTracks(): Promise<Track[]> {
+    return this.db.tracks.toArray();
   }
 }

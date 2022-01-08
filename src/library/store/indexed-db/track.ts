@@ -4,7 +4,7 @@ import { flatMap, omit } from 'lodash';
 import { LibraryDatabase } from './db';
 
 export class IndexedDbTrackStore implements TrackStore {
-  constructor(private db: LibraryDatabase) {}
+  constructor(protected db: LibraryDatabase) {}
 
   async add(tracks: Track<any>[]): Promise<void> {
     const insertedTracks = await this.addTracks(tracks);

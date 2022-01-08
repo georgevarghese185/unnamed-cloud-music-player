@@ -1,4 +1,4 @@
-import { ElectronDeviceStorage } from 'app/src-electron/electron-device-storage';
+import { ElectronDeviceStorage } from 'app/src-electron/storage/device/electron-device-storage';
 import { mkdir, writeFile } from 'fs';
 import { promisify } from 'util';
 import rimraf from 'rimraf';

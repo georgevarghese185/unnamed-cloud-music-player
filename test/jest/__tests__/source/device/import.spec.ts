@@ -10,7 +10,7 @@ describe('Import from device source', () => {
     const { trackStore, deviceStorage, deviceSource, library } =
       createDeviceLibraryFixture();
 
-    deviceStorage.fs.writeFileSync('/test.mp3', '0');
+    deviceStorage.writeFile('/test.mp3', '0');
 
     const importer = await deviceSource.import('/test.mp3');
     const job = await library.import(importer);
@@ -20,21 +20,22 @@ describe('Import from device source', () => {
 
     expect(progress.completed).toEqual(true);
     expect(progress.imported).toEqual(1);
-    expect(trackStore.tracks).toEqual([deviceTrackExpectation('/test.mp3')]);
+    expect(await trackStore.getAllTracks()).toEqual([
+      deviceTrackExpectation('/test.mp3'),
+    ]);
   });
 
   it('should scan a folder recursively and import all music files', async () => {
     const { trackStore, deviceStorage, deviceSource, library } =
       createDeviceLibraryFixture();
 
-    deviceStorage.fs.mkdirSync('/folder');
-    deviceStorage.fs.writeFileSync('/folder/song1.mp3', '0');
-    deviceStorage.fs.writeFileSync('/folder/song2.mp3', '0');
-    deviceStorage.fs.mkdirSync('/folder/subfolder1');
-    deviceStorage.fs.writeFileSync('/folder/subfolder1/irrelevant.txt', '0');
-    deviceStorage.fs.writeFileSync('/folder/subfolder1/song3.ogg', '0');
-    deviceStorage.fs.writeFileSync('/folder/subfolder1/song4.aac', '0');
-    deviceStorage.fs.mkdirSync('/folder/subfolder1/sub-subfolder');
+    deviceStorage.writeFile('/folder/song1.mp3', '0');
+    deviceStorage.writeFile('/folder/song2.mp3', '0');
+    deviceStorage.writeFile('/folder/subfolder1/irrelevant.txt', '0');
+    deviceStorage.writeFile('/folder/subfolder1/song3.ogg', '0');
+    deviceStorage.writeFile('/folder/subfolder1/song4.aac', '0');
+    // empty folder
+    deviceStorage.createDir('/folder/subfolder1/sub-subfolder');
 
     const importer = await deviceSource.import('/folder');
     const job = await library.import(importer);
@@ -73,8 +74,9 @@ describe('Import from device source', () => {
       deviceTrackExpectation('/folder/subfolder1/song4.aac'),
     ];
 
-    expect(trackStore.tracks.length).toEqual(4);
-    expect(trackStore.tracks).toEqual(expect.arrayContaining(expectedTracks));
+    const actualTracks = await trackStore.getAllTracks();
+    expect(actualTracks.length).toEqual(4);
+    expect(actualTracks).toEqual(expect.arrayContaining(expectedTracks));
 
     const tracksFromEvents = importEvents.reduce((tracks: Track[], event) => {
       return tracks.concat(event.tracks);
@@ -88,10 +90,9 @@ describe('Import from device source', () => {
     const { deviceStorage, deviceSource, library } =
       createDeviceLibraryFixture();
 
-    deviceStorage.fs.mkdirSync('/folder');
-    deviceStorage.fs.writeFileSync('/folder/song1.mp3', '0');
-    deviceStorage.fs.writeFileSync('/folder/song2.mp3', '0');
-    deviceStorage.fs.mkdirSync('/folder/errorFolder');
+    deviceStorage.writeFile('/folder/song1.mp3', '0');
+    deviceStorage.writeFile('/folder/song2.mp3', '0');
+    deviceStorage.createDir('/folder/errorFolder');
 
     const listFilesOriginal = deviceStorage.listFiles.bind(deviceStorage);
     const spy = jest.spyOn(deviceStorage, 'listFiles');
@@ -134,7 +135,7 @@ describe('Import from device source', () => {
     const { deviceStorage, deviceSource, library } =
       createDeviceLibraryFixture();
 
-    deviceStorage.fs.writeFileSync('/notAsong.txt', '0');
+    deviceStorage.writeFile('/notAsong.txt', '0');
 
     const importer = await deviceSource.import('/notAsong.txt');
     const job = await library.import(importer);
@@ -156,12 +157,10 @@ describe('Import from device source', () => {
     const { deviceStorage, deviceSource, library, trackStore } =
       createDeviceLibraryFixture();
 
-    deviceStorage.fs.writeFileSync('/song1.mp3', '0');
-    deviceStorage.fs.writeFileSync('/song2.mp3', '0');
-    deviceStorage.fs.mkdirSync('/folder');
-    deviceStorage.fs.mkdirSync('/folder/subfolder');
-    deviceStorage.fs.writeFileSync('/folder/song3.mp3', '0');
-    deviceStorage.fs.writeFileSync('/folder/subfolder/song4.mp3', '0');
+    deviceStorage.writeFile('/song1.mp3', '0');
+    deviceStorage.writeFile('/song2.mp3', '0');
+    deviceStorage.writeFile('/folder/song3.mp3', '0');
+    deviceStorage.writeFile('/folder/subfolder/song4.mp3', '0');
 
     const importer = await deviceSource.import(
       '/song1.mp3',
@@ -180,7 +179,7 @@ describe('Import from device source', () => {
       errors: [],
     } as ImportProgress);
 
-    expect(trackStore.tracks).toEqual([
+    expect(await trackStore.getAllTracks()).toEqual([
       deviceTrackExpectation('/song1.mp3'),
       deviceTrackExpectation('/song2.mp3'),
       deviceTrackExpectation('/folder/song3.mp3'),
