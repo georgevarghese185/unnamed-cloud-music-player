@@ -1,5 +1,5 @@
 import { Track } from 'app/src-core/library';
-import { TrackStore } from 'app/src-core/library/store/track';
+import { ListOptions, TrackStore } from 'app/src-core/library/store/track';
 import { compact, flatMap, omit } from 'lodash';
 import { LibraryDatabase } from './db';
 import { Identifier } from 'app/src-core/library/track';
@@ -20,6 +20,10 @@ export class IndexedDbTrackStore implements TrackStore {
     const trackIds = compact(trackIdentifiers).map((id) => id?.trackId);
     const tracks = await this.db.tracks.bulkGet(trackIds);
     return compact(tracks);
+  }
+
+  async list(options: ListOptions): Promise<Track[]> {
+    return this.db.tracks.offset(options.offset).limit(options.limit).toArray();
   }
 
   private async addTracks(tracks: Track[]): Promise<Track[]> {
