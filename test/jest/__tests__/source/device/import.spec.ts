@@ -186,4 +186,31 @@ describe('Import from device source', () => {
       deviceTrackExpectation('/folder/subfolder/song4.mp3'),
     ]);
   });
+
+  it('should not import the same file twice', async () => {
+    const song1Path = '/folder/song1.mp3';
+    const song2Path = '/folder/song2.mp3';
+    const { deviceStorage, deviceSource, library, trackStore } =
+      createDeviceLibraryFixture();
+
+    // import song1
+    deviceStorage.writeFile(song1Path, '0');
+    let importer = await deviceSource.import('/folder');
+    let job = await library.import(importer);
+    await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
+
+    // add one more song
+    deviceStorage.writeFile(song2Path, '0');
+
+    // import again
+    importer = await deviceSource.import('/folder');
+    job = await library.import(importer);
+    await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
+
+    // song1 should not have been imported twice and song2 should be imported
+    expect(await trackStore.getAllTracks()).toEqual([
+      deviceTrackExpectation('/folder/song1.mp3'),
+      deviceTrackExpectation('/folder/song2.mp3'),
+    ]);
+  });
 });
