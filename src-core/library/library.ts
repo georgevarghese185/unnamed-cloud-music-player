@@ -39,17 +39,17 @@ class ImportJobImpl extends EventEmitter implements ImportJob {
     return { ...this.progress };
   }
 
-  complete() {
+  onComplete() {
     this.progress.completed = true;
     this.emit('complete', this.getProgress());
   }
 
-  import(tracks: Track[]) {
+  onImport(tracks: Track[]) {
     this.progress.imported += tracks.length;
     this.emit('import', tracks, this.getProgress());
   }
 
-  importError(errors: TrackImportError[]) {
+  onImportError(errors: TrackImportError[]) {
     this.progress.errors = [...this.progress.errors, ...errors];
     this.emit('importError', errors);
   }
@@ -90,15 +90,15 @@ export class Library {
 
       if (tracks.length) {
         await trackStore.add(tracks);
-        job.import(tracks);
+        job.onImport(tracks);
       }
 
       if (errors.length) {
-        job.importError(errors);
+        job.onImportError(errors);
       }
     }
 
-    job.complete();
+    job.onComplete();
   }
 }
 
