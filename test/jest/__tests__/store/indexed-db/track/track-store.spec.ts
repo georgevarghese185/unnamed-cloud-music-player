@@ -4,6 +4,7 @@ import { createTracks } from './fixture';
 import { IndexedDbTrackStore } from 'src/library/store/indexed-db/track';
 import { LibraryDatabase } from 'src/library/store/indexed-db/db';
 import { identifiersExpectation } from './expectation';
+import { range } from 'lodash';
 
 describe('IndexedDB track store', () => {
   let db: LibraryDatabase;
@@ -50,6 +51,28 @@ describe('IndexedDB track store', () => {
       tracksToFind.map((track) =>
         deviceTrackExpectation(track.source.meta.filePath),
       ),
+    );
+  });
+
+  it('should list all tracks with limit and offset', async () => {
+    const tracks = createTracks(range(10).map((i) => `/folder/Song${i + 1}`));
+
+    await store.add(tracks);
+
+    let list = await store.list({ limit: 5, offset: 0 });
+
+    expect(list).toEqual(
+      tracks
+        .slice(0, 5)
+        .map((track) => deviceTrackExpectation(track.source.meta.filePath)),
+    );
+
+    list = await store.list({ limit: 4, offset: 3 });
+
+    expect(list).toEqual(
+      tracks
+        .slice(3, 7)
+        .map((track) => deviceTrackExpectation(track.source.meta.filePath)),
     );
   });
 });
