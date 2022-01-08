@@ -1,6 +1,6 @@
 import { Track } from 'app/src-core/library';
 import { Identifier } from 'app/src-core/library/track';
-import Dexie from 'dexie';
+import Dexie, { DexieOptions } from 'dexie';
 
 const DB_NAME = 'Library';
 
@@ -15,8 +15,8 @@ export class LibraryDatabase extends Dexie {
   tracks!: Dexie.Table<ITrack, number>;
   identifiers!: Dexie.Table<IIdentifier, number>;
 
-  constructor(indexedDb?: any) {
-    super(DB_NAME, { indexedDB: indexedDb });
+  constructor(dexieOptions?: DexieOptions) {
+    super(DB_NAME, dexieOptions);
 
     this.version(1).stores({
       tracks: '++id',
