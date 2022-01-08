@@ -8,9 +8,17 @@ const createTrack = (file: File): Track<DeviceSourceMetadata> => {
   return {
     id: 0,
     name: file.name,
+    identifiers: [
+      {
+        name: IDENTIFIER_FILE_PATH,
+        value: file.path,
+      },
+    ],
     source: { name: DeviceSource.sourceName, meta: { filePath: file.path } },
   };
 };
+
+export const IDENTIFIER_FILE_PATH = 'file_path';
 
 export class DeviceSource {
   static sourceName = 'device';
