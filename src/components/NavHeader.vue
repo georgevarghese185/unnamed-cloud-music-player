@@ -3,7 +3,7 @@
    - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-  <q-header class="bg-transparent row q-pl-md q-pt-md">
+  <q-header class="bg-white row q-pl-md q-pt-md">
     <router-link
       v-for="link in links"
       :key="link.title"
