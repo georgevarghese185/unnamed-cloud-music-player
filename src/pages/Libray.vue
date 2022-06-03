@@ -3,7 +3,9 @@
    - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-  <q-page></q-page>
+  <q-page>
+    <router-view />
+  </q-page>
 </template>
 
 <script lang="ts">

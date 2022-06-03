@@ -4,6 +4,12 @@ import { ImportQueue, TrackImportError } from '../library/track-importer';
 import { Player } from '../player';
 import { DeviceFile, DeviceStorage, File } from '../storage/device';
 
+/**
+ *
+ * TODO: import tracks in a more parallel manner like a bunch at a time instead of one ot a time. But continue pushing them 1 at a time
+ *
+ */
+
 const createTrack = (file: File): Track<DeviceSourceMetadata> => {
   return {
     id: 0,
