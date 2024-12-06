@@ -1,69 +1,68 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+import { app, BrowserWindow } from 'electron'
+import path from 'path'
+import os from 'os'
+import { fileURLToPath } from 'url'
 
-import { app, BrowserWindow, nativeTheme } from 'electron';
-import path from 'path';
-import { unlinkSync } from 'fs';
+// needed in case process is undefined under Linux
+const platform = process.platform || os.platform()
 
-try {
-  if (
-    process.platform === 'win32' &&
-    nativeTheme.shouldUseDarkColors === true
-  ) {
-    unlinkSync(path.join(app.getPath('userData'), 'DevTools Extensions'));
-  }
-} catch (_) {
-  // ignore
-}
+const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
-let mainWindow: BrowserWindow | null = null;
+let mainWindow: BrowserWindow | undefined
 
 function createWindow() {
   /**
    * Initial window options
    */
   mainWindow = new BrowserWindow({
+    icon: path.resolve(currentDir, 'icons/icon.png'), // tray icon
     width: 1000,
     height: 600,
     useContentSize: true,
     webPreferences: {
       contextIsolation: true,
-      // More info: /quasar-cli/developing-electron-apps/electron-preload-script
+      // More info: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/electron-preload-script
       preload: path.resolve(
-        __dirname,
-        process.env.QUASAR_ELECTRON_PRELOAD || '',
+        currentDir,
+        path.join(
+          process.env.QUASAR_ELECTRON_PRELOAD_FOLDER,
+          'electron-preload' + process.env.QUASAR_ELECTRON_PRELOAD_EXTENSION,
+        ),
       ),
     },
-  });
+  })
 
-  void mainWindow.loadURL(process.env.APP_URL || '');
+  if (process.env.DEV) {
+    mainWindow.loadURL(process.env.APP_URL)
+  } else {
+    mainWindow.loadFile('index.html')
+  }
 
   if (process.env.DEBUGGING) {
     // if on DEV or Production with debug enabled
-    mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools()
   } else {
     // we're on production; no access to devtools pls
     mainWindow.webContents.on('devtools-opened', () => {
-      mainWindow?.webContents.closeDevTools();
-    });
+      mainWindow?.webContents.closeDevTools()
+    })
   }
 
   mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
+    mainWindow = undefined
+  })
 }
 
-app.on('ready', createWindow);
+app.whenReady().then(createWindow)
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
+  if (platform !== 'darwin') {
+    app.quit()
   }
-});
+})
 
 app.on('activate', () => {
-  if (mainWindow === null) {
-    createWindow();
+  if (mainWindow === undefined) {
+    createWindow()
   }
-});
+})
