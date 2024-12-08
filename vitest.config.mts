@@ -14,6 +14,10 @@ export default defineConfig({
       'src/**/*.vitest.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
       'test/vitest/__tests__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
     ],
+    alias: {
+      'app/': new URL('./', import.meta.url).pathname,
+      'src/': new URL('./src/', import.meta.url).pathname,
+    },
   },
   plugins: [
     // @ts-expect-error I don't know and I don't care. Quasar should fix this, not me
