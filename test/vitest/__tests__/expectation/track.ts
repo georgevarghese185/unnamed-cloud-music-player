@@ -1,5 +1,5 @@
-import { basename } from 'path'
-import { expect } from 'vitest'
+import { basename } from 'path';
+import { expect } from 'vitest';
 
 export const deviceTrackExpectation = (path: string) => ({
   id: expect.any(Number),
@@ -16,4 +16,4 @@ export const deviceTrackExpectation = (path: string) => ({
       filePath: path,
     },
   },
-})
+});

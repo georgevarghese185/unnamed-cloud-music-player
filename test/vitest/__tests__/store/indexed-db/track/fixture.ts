@@ -1,6 +1,6 @@
-import type { Track } from 'app/src-core/library'
-import type { DeviceSourceMetadata } from 'app/src-core/source/device'
-import { basename } from 'path'
+import type { Track } from 'app/src-core/library';
+import type { DeviceSourceMetadata } from 'app/src-core/source/device';
+import { basename } from 'path';
 
 export const createTracks = (filePaths: string[]): Track<DeviceSourceMetadata>[] => {
   return filePaths.map((path) => ({
@@ -16,5 +16,5 @@ export const createTracks = (filePaths: string[]): Track<DeviceSourceMetadata>[]
       meta: { filePath: path },
       name: 'device',
     },
-  }))
-}
+  }));
+};

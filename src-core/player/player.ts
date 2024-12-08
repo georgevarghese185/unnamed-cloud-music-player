@@ -1,3 +1,3 @@
 export interface Player {
-  supports(fileExtension: string): boolean
+  supports(fileExtension: string): boolean;
 }
