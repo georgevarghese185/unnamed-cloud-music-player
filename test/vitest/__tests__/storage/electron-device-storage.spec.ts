@@ -1,47 +1,47 @@
-import { ElectronDeviceStorage } from 'app/src-electron/storage/device/electron-device-storage'
-import { mkdir, writeFile } from 'fs'
-import { promisify } from 'util'
-import { rimraf } from 'rimraf'
-import type { Directory, File } from 'app/src-core/storage/device'
-import { resolve } from 'path'
-import { bridge } from 'app/src-electron/bridge-api'
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { ElectronDeviceStorage } from 'app/src-electron/storage/device/electron-device-storage';
+import { mkdir, writeFile } from 'fs';
+import { promisify } from 'util';
+import { rimraf } from 'rimraf';
+import type { Directory, File } from 'app/src-core/storage/device';
+import { resolve } from 'path';
+import { bridge } from 'app/src-electron/bridge-api';
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-const TEST_FILES_DIR = './test/test-files'
+const TEST_FILES_DIR = './test/test-files';
 
 describe('Electron Device Storage', () => {
   beforeAll(async () => {
-    window.bridge = bridge
-  })
+    window.bridge = bridge;
+  });
 
   beforeEach(async () => {
-    await rimraf(TEST_FILES_DIR)
-    await promisify(mkdir)(TEST_FILES_DIR)
-  })
+    await rimraf(TEST_FILES_DIR);
+    await promisify(mkdir)(TEST_FILES_DIR);
+  });
 
   it('should get single file', async () => {
-    const deviceStorage = new ElectronDeviceStorage()
-    await promisify(writeFile)(`${TEST_FILES_DIR}/file1.txt`, '0')
+    const deviceStorage = new ElectronDeviceStorage();
+    await promisify(writeFile)(`${TEST_FILES_DIR}/file1.txt`, '0');
 
-    const file = await deviceStorage.getFile(resolve(`${TEST_FILES_DIR}/file1.txt`))
+    const file = await deviceStorage.getFile(resolve(`${TEST_FILES_DIR}/file1.txt`));
 
     expect(file).toEqual({
       ext: '.txt',
       isDir: false,
       name: 'file1.txt',
       path: resolve(TEST_FILES_DIR, 'file1.txt'),
-    } as File)
-  })
+    } as File);
+  });
 
   it('should list files for given directory', async () => {
-    const deviceStorage = new ElectronDeviceStorage()
-    await promisify(writeFile)(`${TEST_FILES_DIR}/file1.txt`, '0')
-    await promisify(writeFile)(`${TEST_FILES_DIR}/file2.txt`, '0')
-    await promisify(mkdir)(`${TEST_FILES_DIR}/subfolder`)
+    const deviceStorage = new ElectronDeviceStorage();
+    await promisify(writeFile)(`${TEST_FILES_DIR}/file1.txt`, '0');
+    await promisify(writeFile)(`${TEST_FILES_DIR}/file2.txt`, '0');
+    await promisify(mkdir)(`${TEST_FILES_DIR}/subfolder`);
 
-    const dir = (await deviceStorage.getFile(resolve(TEST_FILES_DIR))) as Directory
+    const dir = (await deviceStorage.getFile(resolve(TEST_FILES_DIR))) as Directory;
 
-    const files = await deviceStorage.listFiles(dir)
+    const files = await deviceStorage.listFiles(dir);
 
     expect(files).toEqual(
       expect.arrayContaining([
@@ -63,6 +63,6 @@ describe('Electron Device Storage', () => {
           path: resolve(TEST_FILES_DIR, 'subfolder'),
         },
       ]),
-    )
-  })
-})
+    );
+  });
+});

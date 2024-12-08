@@ -1,6 +1,6 @@
-import type { Track } from 'app/src-core/library'
-import { flatMap } from 'lodash'
-import { expect } from 'vitest'
+import type { Track } from 'app/src-core/library';
+import { flatMap } from 'lodash';
+import { expect } from 'vitest';
 
 export const identifiersExpectation = (tracks: Track[]) =>
   flatMap(tracks, (track) =>
@@ -10,4 +10,4 @@ export const identifiersExpectation = (tracks: Track[]) =>
       value: identifier.value,
       trackId: track.id,
     })),
-  )
+  );
