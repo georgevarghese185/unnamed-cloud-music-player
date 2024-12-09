@@ -1,8 +1,8 @@
 <template>
-  <div>
-    <div v-for="song of songs" :key="song.id" class="row items-center">
+  <div class="q-pl-md">
+    <div v-for="song of songs" :key="song.id" class="row items-center q-mt-md">
       <img class="album-art" />
-      <p class="q-ma-none text-center">{{ song.name }}</p>
+      <p class="q-ma-none q-ml-sm text-center">{{ song.name }}</p>
     </div>
   </div>
 </template>
@@ -24,8 +24,8 @@ const songs: Track[] = new Array(100).fill(null).map((_, index) => ({
 <style scoped>
 .album-art {
   background: #c4c4c4;
-  width: 58px;
-  height: 58px;
+  width: 52px;
+  height: 52px;
   border-radius: 5px;
 }
 </style>
