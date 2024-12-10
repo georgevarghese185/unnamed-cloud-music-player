@@ -1,45 +1,46 @@
 import { ElectronDeviceStorage } from 'app/src-electron/storage/device/electron-device-storage';
-import { mkdir, writeFile } from 'fs';
-import { promisify } from 'util';
-import { rimraf } from 'rimraf';
 import type { Directory, File } from 'app/src-core/storage/device';
 import { resolve } from 'path';
-import { bridge } from 'app/src-electron/bridge-api';
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { MockDeviceStorage } from '../../mock/mock-device-storage';
 
-const TEST_FILES_DIR = './test/test-files';
+let storage = new MockDeviceStorage();
 
 describe('Electron Device Storage', () => {
-  beforeAll(async () => {
-    window.bridge = bridge;
-  });
-
   beforeEach(async () => {
-    await rimraf(TEST_FILES_DIR);
-    await promisify(mkdir)(TEST_FILES_DIR);
+    storage = new MockDeviceStorage();
+    window.bridge = {
+      file: {
+        getFile: storage.getFile.bind(storage),
+        listFiles: storage.listFiles.bind(storage),
+        openFileSelector: () => {
+          throw new Error('not implemented');
+        },
+      },
+    };
   });
 
   it('should get single file', async () => {
+    storage.memoryFs.writeFileSync(`/file1.txt`, '0');
     const deviceStorage = new ElectronDeviceStorage();
-    await promisify(writeFile)(`${TEST_FILES_DIR}/file1.txt`, '0');
 
-    const file = await deviceStorage.getFile(resolve(`${TEST_FILES_DIR}/file1.txt`));
+    const file = await deviceStorage.getFile('/file1.txt');
 
     expect(file).toEqual({
       ext: '.txt',
       isDir: false,
       name: 'file1.txt',
-      path: resolve(TEST_FILES_DIR, 'file1.txt'),
+      path: '/file1.txt',
     } as File);
   });
 
   it('should list files for given directory', async () => {
     const deviceStorage = new ElectronDeviceStorage();
-    await promisify(writeFile)(`${TEST_FILES_DIR}/file1.txt`, '0');
-    await promisify(writeFile)(`${TEST_FILES_DIR}/file2.txt`, '0');
-    await promisify(mkdir)(`${TEST_FILES_DIR}/subfolder`);
+    storage.memoryFs.writeFileSync(`/file1.txt`, '0');
+    storage.memoryFs.writeFileSync(`/file2.txt`, '0');
+    storage.memoryFs.mkdirSync(`/subfolder`);
 
-    const dir = (await deviceStorage.getFile(resolve(TEST_FILES_DIR))) as Directory;
+    const dir = (await deviceStorage.getFile('/')) as Directory;
 
     const files = await deviceStorage.listFiles(dir);
 
@@ -49,18 +50,18 @@ describe('Electron Device Storage', () => {
           ext: '.txt',
           isDir: false,
           name: 'file1.txt',
-          path: resolve(TEST_FILES_DIR, 'file1.txt'),
+          path: resolve('/file1.txt'),
         },
         {
           ext: '.txt',
           isDir: false,
           name: 'file2.txt',
-          path: resolve(TEST_FILES_DIR, 'file2.txt'),
+          path: resolve('/file2.txt'),
         },
         {
           isDir: true,
           name: 'subfolder',
-          path: resolve(TEST_FILES_DIR, 'subfolder'),
+          path: resolve('/subfolder'),
         },
       ]),
     );

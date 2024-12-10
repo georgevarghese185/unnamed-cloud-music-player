@@ -2,6 +2,7 @@ import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import os from 'os';
 import { fileURLToPath } from 'url';
+import { setupIpcForBridgeApi } from './bridge/ipc/setup';
 
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
@@ -9,6 +10,8 @@ const platform = process.platform || os.platform();
 const currentDir = fileURLToPath(new URL('.', import.meta.url));
 
 let mainWindow: BrowserWindow | undefined;
+
+setupIpcForBridgeApi();
 
 function createWindow() {
   /**
