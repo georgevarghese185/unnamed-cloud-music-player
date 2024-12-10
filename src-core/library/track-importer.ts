@@ -1,5 +1,5 @@
 import type { Track } from './track';
-import { EventEmitter } from 'stream';
+import { EventEmitter } from 'events';
 import type TypedEmitter from 'typed-emitter';
 
 const QUEUE_MAX_SIZE = 100;
