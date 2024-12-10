@@ -8,11 +8,11 @@
       </q-card-section>
 
       <q-list separator>
-        <q-item clickable v-ripple @click="importFromDevice('file')">
+        <q-item v-if="deviceSource" clickable v-ripple @click="importFromDevice('file')">
           <q-item-section>Import files</q-item-section>
         </q-item>
 
-        <q-item clickable v-ripple @click="importFromDevice('folder')">
+        <q-item v-if="deviceSource" clickable v-ripple @click="importFromDevice('folder')">
           <q-item-section>Import folders</q-item-section>
         </q-item>
       </q-list>
@@ -21,18 +21,25 @@
 </template>
 
 <script setup lang="ts">
-import type { TrackImporter } from 'app/src-core/library';
-import { DeviceSource } from 'app/src-core/source/device';
-import { ElectronDeviceStorage } from 'app/src-electron/storage/device/electron-device-storage';
+import type { Source } from 'app/src-core/source';
+import type { DeviceSource } from 'app/src-core/source/device';
+import { DEVICE_SOURCE_NAME } from 'app/src-core/source/device';
 import { useLibrary } from 'src/composables/library';
+
+const { getSource } = useLibrary();
 
 const model = defineModel<boolean>({ default: true });
 const emits = defineEmits<{
-  (e: 'pick', importer: TrackImporter): void;
+  <K extends string, I>(e: 'pick', source: Source<K, I>, inputs: I): void;
 }>();
-const { player } = useLibrary();
+
+const deviceSource: DeviceSource | undefined = getSource(DEVICE_SOURCE_NAME);
 
 const importFromDevice = async (type: 'file' | 'folder') => {
+  if (!deviceSource) {
+    return;
+  }
+
   const filePaths = await window.bridge.file.openFileSelector({
     files: type === 'file',
     folders: type === 'folder',
@@ -43,9 +50,6 @@ const importFromDevice = async (type: 'file' | 'folder') => {
     return;
   }
 
-  const deviceSource = new DeviceSource(new ElectronDeviceStorage(), player);
-  const importer = deviceSource.import(...filePaths);
-
-  emits('pick', importer);
+  emits('pick', deviceSource, filePaths);
 };
 </script>

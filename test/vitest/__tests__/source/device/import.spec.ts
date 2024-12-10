@@ -12,8 +12,7 @@ describe('Import from device source', () => {
 
     deviceStorage.writeFile('/test.mp3', '0');
 
-    const importer = await deviceSource.import('/test.mp3');
-    const job = await library.import(importer);
+    const job = await library.import(deviceSource, ['/test.mp3']);
     const progress = await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
 
     expect(progress.completed).toEqual(true);
@@ -32,8 +31,7 @@ describe('Import from device source', () => {
     // empty folder
     deviceStorage.createDir('/folder/subfolder1/sub-subfolder');
 
-    const importer = await deviceSource.import('/folder');
-    const job = await library.import(importer);
+    const job = await library.import(deviceSource, ['/folder']);
     const importEvents: { tracks: Track[]; progress: ImportProgress }[] = [];
 
     job.on('import', (tracks, progress) => {
@@ -98,8 +96,7 @@ describe('Import from device source', () => {
       }
     });
 
-    const importer = await deviceSource.import('/folder');
-    const job = await library.import(importer);
+    const job = await library.import(deviceSource, ['/folder']);
     let importErrors: TrackImportError[] = [];
 
     job.on('importError', (errors) => {
@@ -126,8 +123,7 @@ describe('Import from device source', () => {
 
     deviceStorage.writeFile('/notAsong.txt', '0');
 
-    const importer = await deviceSource.import('/notAsong.txt');
-    const job = await library.import(importer);
+    const job = await library.import(deviceSource, ['/notAsong.txt']);
 
     const finalProgress = await new Promise<ImportProgress>((resolve) =>
       job.on('complete', resolve),
@@ -148,8 +144,7 @@ describe('Import from device source', () => {
     deviceStorage.writeFile('/folder/song3.mp3', '0');
     deviceStorage.writeFile('/folder/subfolder/song4.mp3', '0');
 
-    const importer = await deviceSource.import('/song1.mp3', '/song2.mp3', '/folder');
-    const job = await library.import(importer);
+    const job = await library.import(deviceSource, ['/song1.mp3', '/song2.mp3', '/folder']);
 
     const finalProgress = await new Promise<ImportProgress>((resolve) =>
       job.on('complete', resolve),
@@ -176,16 +171,14 @@ describe('Import from device source', () => {
 
     // import song1
     deviceStorage.writeFile(song1Path, '0');
-    let importer = await deviceSource.import('/folder');
-    let job = await library.import(importer);
+    let job = await library.import(deviceSource, ['/folder']);
     await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
 
     // add one more song
     deviceStorage.writeFile(song2Path, '0');
 
     // import again
-    importer = await deviceSource.import('/folder');
-    job = await library.import(importer);
+    job = await library.import(deviceSource, ['/folder']);
     await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
 
     // song1 should not have been imported twice and song2 should be imported

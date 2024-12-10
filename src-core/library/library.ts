@@ -6,6 +6,13 @@ import type { Track } from './track';
 import { eqIdentifiers, getIdentifiers } from './track';
 import type { TrackImporter } from './track-importer';
 import { TrackImportError } from './track-importer';
+import type { Source } from '../source';
+
+export class UnsupportedSourceError extends Error {
+  constructor(sourceName: string) {
+    super(`Source '${sourceName}' is not supported`);
+  }
+}
 
 export interface ImportJob {
   getProgress(): ImportProgress;
@@ -74,7 +81,13 @@ export class Library {
     this.player = options.player;
   }
 
-  import(importer: TrackImporter): ImportJob {
+  getSource<K extends string, I, S extends Source<K, I>>(sourceName: K): S | undefined {
+    const source = this.options.sources.find((s): s is S => s.name === sourceName);
+    return source;
+  }
+
+  import<K extends string, I, S extends Source<K, I>>(source: S, inputs: I): ImportJob {
+    const importer = source.import(inputs);
     const job = new ImportJobImpl();
     setTimeout(() => this.startImport(importer, job));
     return job;
@@ -118,4 +131,5 @@ export type LibraryOptions = {
   store: {
     tracks: TrackStore;
   };
+  sources: Source<string, unknown>[];
 };
