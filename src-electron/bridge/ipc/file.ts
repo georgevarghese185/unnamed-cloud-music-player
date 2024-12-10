@@ -1,6 +1,6 @@
 import { NodeFsDeviceStorage } from '../../storage/device/node-fs-device-storage';
 import type { Directory } from 'app/src-core/storage/device';
-import type { FileFilter, OpenDialogOptions } from 'electron';
+import type { BaseWindow, FileFilter, OpenDialogOptions } from 'electron';
 import { dialog, ipcMain } from 'electron';
 import {
   IPC_CHANNEL_GET_FILE,
@@ -17,7 +17,7 @@ export type OpenFileSectorOptions = {
   filters?: FileFilter[];
 };
 
-export function setupFileIpc() {
+export function setupFileIpc(window: BaseWindow) {
   ipcMain.handle(IPC_CHANNEL_LIST_FILES, (event, dir: Directory) => {
     return storage.listFiles(dir);
   });
@@ -41,7 +41,7 @@ export function setupFileIpc() {
       properties.push('multiSelections');
     }
 
-    const result = await dialog.showOpenDialog({
+    const result = await dialog.showOpenDialog(window, {
       properties,
     });
 
