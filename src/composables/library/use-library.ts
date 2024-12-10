@@ -1,4 +1,4 @@
-import type { ImportJob, ImportProgress, Track, TrackImporter } from 'app/src-core/library';
+import type { ImportJob, ImportProgress, Track } from 'app/src-core/library';
 import type { TrackImportError } from 'app/src-core/library/track-importer';
 import { inject, onMounted, onUnmounted, ref, shallowRef } from 'vue';
 import {
@@ -8,6 +8,7 @@ import {
   libraryInjectionKey,
 } from './use-library-provider';
 import createLibrary from './library-factory';
+import type { Source } from 'app/src-core/source';
 
 export default function useLibrary() {
   const library = inject(libraryInjectionKey, shallowRef(createLibrary()));
@@ -45,7 +46,7 @@ export default function useLibrary() {
     importJob.value?.off('complete', onImportComplete);
   });
 
-  async function startImport(importer: TrackImporter) {
+  function startImport<K extends string, I>(source: Source<K, I>, inputs: I) {
     const importInProgress = importProgress.value && !importProgress.value.completed;
 
     if (importInProgress) {
@@ -53,7 +54,7 @@ export default function useLibrary() {
     }
 
     importErrors.value = []; // reset errors
-    importJob.value = await library.value.import(importer);
+    importJob.value = library.value.import(source, inputs);
     importProgress.value = importJob.value.getProgress();
     onImport(importJob.value);
   }
@@ -65,5 +66,6 @@ export default function useLibrary() {
       errors: importErrors,
     },
     player: library.value.player,
+    getSource: library.value.getSource.bind(library.value),
   };
 }

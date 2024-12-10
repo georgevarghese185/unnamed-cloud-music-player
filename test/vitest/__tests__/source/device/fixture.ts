@@ -9,7 +9,7 @@ export const createDeviceLibraryFixture = () => {
   const deviceStorage = new MockDeviceStorage();
   const player = new MockPlayer();
   const deviceSource = new DeviceSource(deviceStorage, player);
-  const library = new Library({ player, store: { tracks: trackStore } });
+  const library = new Library({ player, store: { tracks: trackStore }, sources: [deviceSource] });
 
   return {
     deviceStorage,

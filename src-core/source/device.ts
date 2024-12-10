@@ -6,12 +6,15 @@ import type { ImportQueue } from '../library/track-importer';
 import { TrackImportError } from '../library/track-importer';
 import type { Player } from '../player';
 import type { DeviceFile, DeviceStorage, File } from '../storage/device';
+import type { Source } from './source';
 
 /**
  *
  * TODO: import tracks in a more parallel manner like a bunch at a time instead of one ot a time. But continue pushing them 1 at a time
  *
  */
+
+export const DEVICE_SOURCE_NAME = 'device' as const;
 
 const createTrack = (file: File): Track<DeviceSourceMetadata> => {
   return {
@@ -23,21 +26,21 @@ const createTrack = (file: File): Track<DeviceSourceMetadata> => {
         value: file.path,
       },
     ],
-    source: { name: DeviceSource.sourceName, meta: { filePath: file.path } },
+    source: { name: DEVICE_SOURCE_NAME, meta: { filePath: file.path } },
   };
 };
 
 export const IDENTIFIER_FILE_PATH = 'file_path';
 
-export class DeviceSource {
-  static sourceName = 'device';
+export class DeviceSource implements Source<'device', string[]> {
+  name = DEVICE_SOURCE_NAME;
 
   constructor(
     private storage: DeviceStorage,
     private player: Player,
   ) {}
 
-  import(...paths: string[]): TrackImporter {
+  import(paths: string[]): TrackImporter {
     return new TrackImporter(async (queue) => this.importFromPaths(paths, queue));
   }
 
