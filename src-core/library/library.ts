@@ -72,7 +72,7 @@ export class Library {
 
   async import(importer: TrackImporter): Promise<ImportJob> {
     const job = new ImportJobImpl();
-    setImmediate(() => this.startImport(importer, job));
+    setTimeout(() => this.startImport(importer, job));
     return job;
   }
 
