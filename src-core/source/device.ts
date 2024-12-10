@@ -37,7 +37,7 @@ export class DeviceSource {
     private player: Player,
   ) {}
 
-  async import(...paths: string[]): Promise<TrackImporter> {
+  import(...paths: string[]): TrackImporter {
     return new TrackImporter(async (queue) => this.importFromPaths(paths, queue));
   }
 

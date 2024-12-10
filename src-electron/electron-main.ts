@@ -11,8 +11,6 @@ const currentDir = fileURLToPath(new URL('.', import.meta.url));
 
 let mainWindow: BrowserWindow | undefined;
 
-setupIpcForBridgeApi();
-
 function createWindow() {
   /**
    * Initial window options
@@ -34,6 +32,8 @@ function createWindow() {
       ),
     },
   });
+
+  setupIpcForBridgeApi(mainWindow);
 
   if (process.env.DEV) {
     mainWindow.loadURL(process.env.APP_URL);

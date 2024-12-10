@@ -4,11 +4,15 @@
 
 <template>
   <q-page>
-    <div class="row reverse q-mr-md">
-      <q-btn color="primary" label="Import" />
-    </div>
+    <ImportMenu />
+
     <router-view />
   </q-page>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import ImportMenu from 'src/components/import/ImportMenu.vue';
+import { useLibraryProvider } from 'src/composables/library';
+
+useLibraryProvider();
+</script>

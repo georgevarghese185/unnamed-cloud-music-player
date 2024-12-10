@@ -68,9 +68,13 @@ const split = (tracksAndErrors: (Track | TrackImportError)[]): [Track[], TrackIm
 };
 
 export class Library {
-  constructor(private options: LibraryOptions) {}
+  readonly player: Player;
 
-  async import(importer: TrackImporter): Promise<ImportJob> {
+  constructor(private options: LibraryOptions) {
+    this.player = options.player;
+  }
+
+  import(importer: TrackImporter): ImportJob {
     const job = new ImportJobImpl();
     setTimeout(() => this.startImport(importer, job));
     return job;
