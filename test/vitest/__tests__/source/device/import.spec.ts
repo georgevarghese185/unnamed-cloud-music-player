@@ -70,6 +70,7 @@ describe('Import from device source', () => {
     const actualTracks = await trackStore.getAllTracks();
     expect(actualTracks.length).toEqual(4);
     expect(actualTracks).toEqual(expect.arrayContaining(expectedTracks));
+    expect(importEvents.flatMap((event) => event.tracks)).toEqual(expectedTracks);
 
     const tracksFromEvents = importEvents.reduce((tracks: Track[], event) => {
       return tracks.concat(event.tracks);
