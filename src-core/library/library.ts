@@ -76,9 +76,11 @@ const split = (tracksAndErrors: (Track | TrackImportError)[]): [Track[], TrackIm
 
 export class Library {
   readonly player: Player;
+  readonly tracks: TrackStore;
 
   constructor(private options: LibraryOptions) {
     this.player = options.player;
+    this.tracks = options.store.tracks;
   }
 
   getSource<K extends string, I, S extends Source<K, I>>(sourceName: K): S | undefined {

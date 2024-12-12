@@ -16,6 +16,8 @@ export default function useLibrary() {
   const importProgress = inject(importProgressInjectionKey, ref(null));
   const importErrors = inject(importErrorsInjectionKey, ref([]));
 
+  const tracks = shallowRef<Track[]>([]);
+
   function onImportProgress(tracks: Track[], progress: ImportProgress) {
     importProgress.value = progress;
   }
@@ -59,6 +61,10 @@ export default function useLibrary() {
     onImport(importJob.value);
   }
 
+  async function findTracks() {
+    tracks.value = await library.value.tracks.list({ limit: 1000000, offset: 0 });
+  }
+
   return {
     import: {
       start: startImport,
@@ -67,5 +73,9 @@ export default function useLibrary() {
     },
     player: library.value.player,
     getSource: library.value.getSource.bind(library.value),
+    tracks: {
+      list: tracks,
+      find: findTracks,
+    },
   };
 }
