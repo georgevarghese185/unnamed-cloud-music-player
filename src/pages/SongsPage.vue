@@ -1,24 +1,23 @@
 <template>
-  <div class="q-pl-md">
-    <div v-for="song of songs" :key="song.id" class="row items-center q-mt-md">
-      <img class="album-art" />
-      <p class="q-ma-none q-ml-sm text-center">{{ song.name }}</p>
-    </div>
+  <div class="q-pl-md" style="flex: 1 1 auto; overflow: auto">
+    <q-virtual-scroll :items="tracks" separator v-slot="{ item }">
+      <q-item :key="item.id" dense class="row items-center q-mt-md no-border">
+        <img class="album-art" />
+        <p class="q-ma-none q-ml-sm text-center">{{ item.name }}</p>
+      </q-item>
+    </q-virtual-scroll>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { Track } from 'app/src-core/library';
+import { useLibrary } from 'src/composables/library';
+import { onMounted } from 'vue';
 
-const songs: Track[] = new Array(100).fill(null).map((_, index) => ({
-  id: index,
-  name: `Song ${index + 1}`,
-  identifiers: [{ name: 'identifier', value: `value ${index}` }],
-  source: {
-    name: 'device',
-    meta: { filePath: `/${index}.mp3` },
-  },
-}));
+const library = useLibrary();
+
+onMounted(() => library.tracks.find());
+
+const tracks = library.tracks.list;
 </script>
 
 <style scoped>

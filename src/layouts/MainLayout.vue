@@ -3,13 +3,13 @@
    - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-  <q-layout view="hHh lpR fFf">
-    <nav-header :links="links" />
+  <div class="window-height" style="display: flex; flex-direction: column">
+    <nav-header :links="links" class="row" />
 
-    <q-page-container>
+    <main class="column no-wrap" style="padding-top: 0; flex: 1 1 auto; overflow: hidden">
       <router-view />
-    </q-page-container>
-  </q-layout>
+    </main>
+  </div>
 </template>
 
 <script setup lang="ts">

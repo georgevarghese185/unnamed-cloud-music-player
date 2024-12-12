@@ -3,7 +3,7 @@
    - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-  <q-header class="bg-white row q-pl-md q-pt-md">
+  <header class="bg-white row q-pl-md q-pt-md">
     <router-link
       v-for="link in links"
       :key="link.title"
@@ -12,7 +12,7 @@
     >
       {{ link.title }}
     </router-link>
-  </q-header>
+  </header>
 </template>
 
 <script setup lang="ts">
