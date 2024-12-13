@@ -15,10 +15,13 @@
 <script setup lang="ts">
 import NavHeader from 'src/components/NavHeader.vue';
 import type { NavLink } from 'src/components/nav-header-models';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const links: NavLink[] = [
   {
-    title: 'Library',
+    title: t('header.library'),
     path: 'library',
   },
 ];

@@ -4,7 +4,7 @@
 
 <template>
   <div class="row reverse q-mr-md">
-    <q-btn color="primary" label="Import" @click="sourcePickerDialog = true" />
+    <q-btn color="primary" :label="t('import.importButton')" @click="sourcePickerDialog = true" />
 
     <ImportSourcePicker v-model="sourcePickerDialog" @pick="startImport" />
 
@@ -18,6 +18,9 @@ import { ref } from 'vue';
 import ImportSourcePicker from 'src/components/import/ImportSourcePicker.vue';
 import ImportProgress from 'src/components/import/ImportProgress.vue';
 import type { Source } from 'app/src-core/source';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const library = useLibrary();
 const sourcePickerDialog = ref(false);
