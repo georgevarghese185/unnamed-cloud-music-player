@@ -6,15 +6,17 @@
   <q-dialog v-model="model" backdrop-filter="blur(4px)">
     <q-card style="width: 700px; max-width: 80vw" class="q-px-lg">
       <q-card-section>
-        <div class="text-h6">Importing Music</div>
+        <div class="text-h6">{{ t('import.progress.title') }}</div>
       </q-card-section>
 
       <div class="error-list overflow-auto rounded-borders q--avoid-card-border">
-        <p v-if="importErrors.length == 0">No Errors</p>
+        <p v-if="importErrors.length == 0">{{ t('import.progress.noErrors') }}</p>
         <p v-else v-for="(error, i) of importErrors" :key="i">{{ error }}</p>
       </div>
 
-      <p class="q-mt-md">Total songs imported: {{ importProgress?.imported }}</p>
+      <p class="q-mt-md">
+        {{ t('import.progress.totalSongsImported', { imported: importProgress?.imported }) }}
+      </p>
 
       <q-card-actions
         v-if="importProgress?.completed"
@@ -22,7 +24,7 @@
         class="bg-white text-teal"
         @click="model = false"
       >
-        <q-btn flat label="Done" v-close-popup />
+        <q-btn flat :label="t('import.progress.doneButton')" v-close-popup />
       </q-card-actions>
 
       <q-linear-progress v-else query />
@@ -32,7 +34,9 @@
 
 <script setup lang="ts">
 import { useLibrary } from 'src/composables/library';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const library = useLibrary();
 
 const model = defineModel<boolean>({ default: true });

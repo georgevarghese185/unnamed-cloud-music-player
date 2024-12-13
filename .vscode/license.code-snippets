@@ -50,4 +50,10 @@
     ],
     "description": "Public Domain License header",
   },
+  "i18n": {
+    "scope": "javascript,typescript,vue",
+    "prefix": "i18n",
+    "body": ["const { t } = usei18n$0();"],
+    "description": "i18n transaction",
+  },
 }
