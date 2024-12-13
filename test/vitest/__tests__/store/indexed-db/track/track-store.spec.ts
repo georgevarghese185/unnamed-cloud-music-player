@@ -1,3 +1,6 @@
+/* Any copyright is dedicated to the Public Domain.
+ * https://creativecommons.org/publicdomain/zero/1.0/ */
+
 import { MockLibraryDatabase } from 'app/test/vitest/mock/mock-library-database';
 import { createTracks } from './fixture';
 import { IndexedDbTrackStore } from 'src/library/store/indexed-db/track';

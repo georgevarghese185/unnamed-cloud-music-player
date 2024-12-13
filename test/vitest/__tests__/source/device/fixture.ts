@@ -1,3 +1,6 @@
+/* Any copyright is dedicated to the Public Domain.
+ * https://creativecommons.org/publicdomain/zero/1.0/ */
+
 import { Library } from 'app/src-core/library';
 import { DeviceSource } from 'app/src-core/source/device';
 import { MockDeviceStorage } from 'app/test/vitest/mock/mock-device-storage';
