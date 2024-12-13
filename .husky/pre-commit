@@ -1,0 +1,4 @@
+yarn test:unit:ci
+yarn lint
+yarn format --check
+yarn checklicense
