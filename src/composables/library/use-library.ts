@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import type { ImportJob, ImportProgress, Track } from 'app/src-core/library';
 import type { TrackImportError } from 'app/src-core/library/track-importer';
 import { inject, onMounted, onUnmounted, ref, shallowRef } from 'vue';

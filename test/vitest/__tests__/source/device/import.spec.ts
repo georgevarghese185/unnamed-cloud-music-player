@@ -1,3 +1,6 @@
+/* Any copyright is dedicated to the Public Domain.
+ * https://creativecommons.org/publicdomain/zero/1.0/ */
+
 import type { ImportProgress } from 'app/src-core/library';
 import type { Track } from 'app/src-core/library/track';
 import { TrackImportError } from 'app/src-core/library/track-importer';

@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { NodeFsDeviceStorage } from '../../storage/device/node-fs-device-storage';
 import type { Directory } from 'app/src-core/storage/device';
 import type { BaseWindow, FileFilter, OpenDialogOptions } from 'electron';

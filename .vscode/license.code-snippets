@@ -1,0 +1,53 @@
+{
+  // Place your unnamed-cloud-music-player workspace snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and
+  // description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope
+  // is left empty or omitted, the snippet gets applied to all languages. The prefix is what is
+  // used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+  // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders.
+  // Placeholders with the same ids are connected.
+  // Example:
+  "MPL License Slash Comment": {
+    "scope": "javascript,typescript,scss",
+    "prefix": "mpl",
+    "body": [
+      "/*",
+      " * This Source Code Form is subject to the terms of the Mozilla Public",
+      " * License, v. 2.0. If a copy of the MPL was not distributed with this",
+      " * file, You can obtain one at https://mozilla.org/MPL/2.0/.",
+      " */",
+      "",
+    ],
+    "description": "MPL License header",
+  },
+  "MPL License XML": {
+    "scope": "vue,html",
+    "prefix": "mpl",
+    "body": [
+      "<!-- This Source Code Form is subject to the terms of the Mozilla Public",
+      "- License, v. 2.0. If a copy of the MPL was not distributed with this",
+      "- file, You can obtain one at https://mozilla.org/MPL/2.0/. -->",
+      "",
+    ],
+    "description": "MPL License header",
+  },
+  "Public License Slash Comment": {
+    "scope": "javascript,typescript,scss",
+    "prefix": "pd",
+    "body": [
+      "/* Any copyright is dedicated to the Public Domain.",
+      " * https://creativecommons.org/publicdomain/zero/1.0/ */",
+      "",
+    ],
+    "description": "Public Domain License header",
+  },
+  "Public License XML": {
+    "scope": "vue,html",
+    "prefix": "mpl",
+    "body": [
+      "<!-- Any copyright is dedicated to the Public Domain.",
+      "- https://creativecommons.org/publicdomain/zero/1.0/ -->",
+      "",
+    ],
+    "description": "Public Domain License header",
+  },
+}
