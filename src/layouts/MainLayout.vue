@@ -3,34 +3,26 @@
    - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-  <q-layout view="hHh lpR fFf">
-    <nav-header :links="links" />
+  <div class="window-height" style="display: flex; flex-direction: column">
+    <nav-header :links="links" class="row" />
 
-    <q-page-container>
+    <main class="column no-wrap" style="padding-top: 0; flex: 1 1 auto; overflow: hidden">
       <router-view />
-    </q-page-container>
-  </q-layout>
+    </main>
+  </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
 import NavHeader from 'src/components/NavHeader.vue';
-import { NavLink } from 'src/components/nav-header-models';
+import type { NavLink } from 'src/components/nav-header-models';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const links: NavLink[] = [
   {
-    title: 'Library',
+    title: t('header.library'),
     path: 'library',
   },
 ];
-
-export default defineComponent({
-  name: 'MainLayout',
-  components: { NavHeader },
-  setup() {
-    return {
-      links,
-    };
-  },
-});
 </script>

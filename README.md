@@ -20,32 +20,43 @@ The plan is to create a cross-platform music player app that can
 
 ## Current progress
 
-Just a blank page. The app runs as a Single Page web app and an Electron app.
+- A mostly blank electron and web app
+- The electron app can import music from folders on your system and add them to a library and display the songs as a list
 
 ## Run the project
 
 1. Install Node.js and Yarn
 
+   If you use `nvm` or `nvm-windows` you can install the recommended version of Node.js with
+
+   ```
+   nvm install
+   nvm use
+   ```
+
 2. Install dependencies
 
-```sh
-yarn install
-```
-
-3. Install Quasar CLI
-
-```sh
-yarn global add @quasar/cli@
-```
+   ```sh
+   yarn install
+   ```
 
 ### Run web app:
 
 ```sh
-quasar dev
+yarn dev
 ```
 
 ### Run electron app
 
 ```sh
-quasar dev -m electron
+yarn dev -m electron
+```
+
+### Lint and Format
+
+Use ESLint and Prettier to fix whatever style and formatting issues you can before committing any code
+
+```sh
+yarn lint
+yarn format --write
 ```

@@ -3,7 +3,7 @@
    - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-  <q-header class="bg-transparent row q-pl-md q-pt-md">
+  <header class="bg-white row q-pl-md q-pt-md">
     <router-link
       v-for="link in links"
       :key="link.title"
@@ -12,22 +12,14 @@
     >
       {{ link.title }}
     </router-link>
-  </q-header>
+  </header>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import { NavLink } from './nav-header-models';
+<script setup lang="ts">
+import type { NavLink } from './nav-header-models';
 
-export default defineComponent({
-  name: 'NavHeader',
-  props: {
-    links: {
-      type: Array as PropType<NavLink[]>,
-      default: () => [],
-    },
-  },
-});
+const props = defineProps<{ links: NavLink[] }>();
+const links = props.links;
 </script>
 
 <style lang="scss" scoped>
