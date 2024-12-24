@@ -2,15 +2,24 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { RouteRecordRaw } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/library',
+    redirect: '/library/songs',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: 'library', component: () => import('src/pages/Libray.vue') },
+      {
+        path: 'library',
+        children: [
+          {
+            path: 'songs',
+            component: () => import('src/pages/SongsPage.vue'),
+          },
+        ],
+        component: () => import('src/pages/LibrayPage.vue'),
+      },
     ],
   },
 
@@ -18,7 +27,7 @@ const routes: RouteRecordRaw[] = [
   // but you can also remove it
   {
     path: '/:catchAll(.*)*',
-    redirect: '/library',
+    redirect: '/library/songs',
   },
 ];
 

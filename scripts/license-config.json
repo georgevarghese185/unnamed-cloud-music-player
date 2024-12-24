@@ -1,0 +1,20 @@
+{
+  "patterns": ["**/*"],
+  "exclude": [
+    "node_modules/**/*",
+    ".quasar/**/*",
+    ".github/**/*",
+    ".vscode/**/*",
+    "src-electron/icons/*",
+    ".npmrc",
+    ".nvmrc",
+    "LICENSE",
+    "README.md",
+    "yarn.lock",
+    "quasar.config.ts*",
+    "vitest.config.mts",
+    "postcss.config.js",
+    "eslint.config.js",
+    "**/*.{ico,svg,png,json}"
+  ]
+}
