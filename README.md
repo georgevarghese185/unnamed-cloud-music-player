@@ -50,3 +50,12 @@ yarn dev
 ```sh
 yarn dev -m electron
 ```
+
+### Lint and Format
+
+Use ESLint and Prettier to fix whatever style and formatting issues you can before committing any code
+
+```sh
+yarn lint
+yarn format --write
+```
