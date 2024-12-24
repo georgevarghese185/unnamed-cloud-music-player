@@ -4,7 +4,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import EventEmitter from 'events';
 import { differenceWith } from 'lodash';
 import type { Player } from '../player';
 import type { TrackStore } from './store/track';
@@ -13,6 +12,8 @@ import { eqIdentifiers, getIdentifiers } from './track';
 import type { TrackImporter } from './track-importer';
 import { TrackImportError } from './track-importer';
 import type { Source } from '../source';
+import type { ImportJob } from './import-job';
+import { ImportJobImpl } from './import-job';
 
 export class UnsupportedSourceError extends Error {
   constructor(sourceName: string) {
@@ -20,64 +21,12 @@ export class UnsupportedSourceError extends Error {
   }
 }
 
-export interface ImportJob {
-  getProgress(): ImportProgress;
-  on<Event extends keyof ImportJobEvents>(event: Event, handler: ImportJobEvents[Event]): void;
-  off<Event extends keyof ImportJobEvents>(event: Event, handler: ImportJobEvents[Event]): void;
-}
-
-export type ImportProgress = {
-  completed: boolean;
-  imported: number;
-  errors: TrackImportError[];
-};
-
-export type ImportJobEvents = {
-  complete: (progress: ImportProgress) => void;
-  import: (tracks: Track[], progress: ImportProgress) => void;
-  importError: (errors: TrackImportError[]) => void;
-};
-
-class ImportJobImpl extends EventEmitter implements ImportJob {
-  private progress: ImportProgress = {
-    completed: false,
-    imported: 0,
-    errors: [],
+export type LibraryOptions = {
+  player: Player;
+  store: {
+    tracks: TrackStore;
   };
-
-  getProgress() {
-    return { ...this.progress };
-  }
-
-  onComplete() {
-    this.progress.completed = true;
-    this.emit('complete', this.getProgress());
-  }
-
-  onImport(tracks: Track[]) {
-    this.progress.imported += tracks.length;
-    this.emit('import', tracks, this.getProgress());
-  }
-
-  onImportError(errors: TrackImportError[]) {
-    this.progress.errors = [...this.progress.errors, ...errors];
-    this.emit('importError', errors);
-  }
-}
-
-const split = (tracksAndErrors: (Track | TrackImportError)[]): [Track[], TrackImportError[]] => {
-  const tracks: Track[] = [];
-  const errors: TrackImportError[] = [];
-
-  tracksAndErrors.forEach((trackOrError) => {
-    if (trackOrError instanceof TrackImportError) {
-      errors.push(trackOrError);
-    } else {
-      tracks.push(trackOrError);
-    }
-  });
-
-  return [tracks, errors];
+  sources: Source<string, unknown>[];
 };
 
 export class Library {
@@ -134,10 +83,17 @@ export class Library {
   }
 }
 
-export type LibraryOptions = {
-  player: Player;
-  store: {
-    tracks: TrackStore;
-  };
-  sources: Source<string, unknown>[];
+const split = (tracksAndErrors: (Track | TrackImportError)[]): [Track[], TrackImportError[]] => {
+  const tracks: Track[] = [];
+  const errors: TrackImportError[] = [];
+
+  tracksAndErrors.forEach((trackOrError) => {
+    if (trackOrError instanceof TrackImportError) {
+      errors.push(trackOrError);
+    } else {
+      tracks.push(trackOrError);
+    }
+  });
+
+  return [tracks, errors];
 };
