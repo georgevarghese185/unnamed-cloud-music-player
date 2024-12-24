@@ -20,7 +20,8 @@ The plan is to create a cross-platform music player app that can
 
 ## Current progress
 
-Just a blank page. The app runs as a Single Page web app and an Electron app.
+- A mostly blank electron and web app
+- The electron app can import music from folders on your system and add them to a library and display the songs as a list
 
 ## Run the project
 
