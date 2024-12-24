@@ -7,7 +7,7 @@
 import { UNSUPPORTED_FILE } from '../constants/errors';
 import { getErrorMessage } from '../error/util';
 import type { Track } from '../library';
-import { TrackImporter } from '../library';
+import { TrackImporter } from '../library/track-importer';
 import type { ImportQueue } from '../library/track-importer';
 import { TrackImportError } from '../library/track-importer';
 import type { Player } from '../player';

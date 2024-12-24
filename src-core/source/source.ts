@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import type { TrackImporter } from '../library';
+import type { TrackImporter } from '../library/track-importer';
 
 export interface Source<K extends string, I> {
   name: K;
