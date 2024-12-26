@@ -20,10 +20,10 @@ export type Fs = {
 };
 
 export class NodeFsDeviceStorage implements DeviceStorage {
-  constructor(private fs: Fs = nodeFs) {}
+  constructor(protected fs: Fs = nodeFs) {}
 
   async listFiles(dir: Directory): Promise<DeviceFile[]> {
-    const files = await promisify(this.fs.readdir)(dir.path);
+    const files = await promisify(this.fs.readdir.bind(this.fs))(dir.path);
     return Promise.all(files.map((file) => this.getFile(join(dir.path, file))));
   }
 
@@ -45,7 +45,8 @@ export class NodeFsDeviceStorage implements DeviceStorage {
   }
 
   private async isDirectory(path: string) {
-    const fileStat = await promisify(this.fs.stat)(path);
+    console.log(path);
+    const fileStat = await promisify(this.fs.stat.bind(this.fs))(path);
     return fileStat.isDirectory();
   }
 }

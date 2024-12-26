@@ -42,9 +42,9 @@ function createWindow() {
   setupIpcForBridgeApi(mainWindow);
 
   if (process.env.DEV) {
-    mainWindow.loadURL(process.env.APP_URL);
+    void mainWindow.loadURL(process.env.APP_URL);
   } else {
-    mainWindow.loadFile('index.html');
+    void mainWindow.loadFile('index.html');
   }
 
   if (process.env.DEBUGGING) {
@@ -62,7 +62,7 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(createWindow);
+void app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
   if (platform !== 'darwin') {

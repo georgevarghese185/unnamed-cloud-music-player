@@ -42,7 +42,7 @@ export default [
     // https://typescript-eslint.io/users/configs#recommended-configurations
     extends: [
       // By default, only the recommended rules are enabled.
-      'recommended',
+      'recommendedTypeChecked',
       // You can also manually enable the stylistic rules.
       // "stylistic",
 
@@ -84,6 +84,13 @@ export default [
       globals: {
         ...globals.serviceworker,
       },
+    },
+  },
+
+  {
+    files: ['test/**'],
+    rules: {
+      '@typescript-eslint/await-thenable': 'off',
     },
   },
 
