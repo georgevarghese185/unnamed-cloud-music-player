@@ -20,7 +20,8 @@ import type { Source } from './source';
  *
  */
 
-export const DEVICE_SOURCE_NAME = 'device' as const;
+export type DeviceSourceName = 'device';
+export const DEVICE_SOURCE_NAME: DeviceSourceName = 'device';
 
 const createTrack = (file: File): Track<DeviceSourceMetadata> => {
   return {
@@ -47,7 +48,16 @@ export class DeviceSource implements Source<'device', string[]> {
   ) {}
 
   import(paths: string[]): TrackImporter {
-    return new TrackImporter(async (queue) => this.importFromPaths(paths, queue));
+    return new TrackImporter((queue) => {
+      this.importFromPaths(paths, queue).catch((e) => {
+        void queue.push(
+          new TrackImportError(
+            `Unexpected error while importing tracks from paths ${paths.join(',')}: ${getErrorMessage(e)}`,
+            '',
+          ),
+        );
+      });
+    });
   }
 
   private async importFromPaths(sourcePaths: string[], queue: ImportQueue) {

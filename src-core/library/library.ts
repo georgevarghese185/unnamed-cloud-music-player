@@ -14,6 +14,7 @@ import { TrackImportError } from './track-importer';
 import type { Source } from '../source';
 import type { ImportJob } from './import-job';
 import { ImportJobImpl } from './import-job';
+import { getErrorMessage } from '../error/util';
 
 export class UnsupportedSourceError extends Error {
   constructor(sourceName: string) {
@@ -46,7 +47,14 @@ export class Library {
   import<K extends string, I, S extends Source<K, I>>(source: S, inputs: I): ImportJob {
     const importer = source.import(inputs);
     const job = new ImportJobImpl();
-    setTimeout(() => this.startImport(importer, job));
+    setTimeout(() => {
+      this.startImport(importer, job).catch((e) => {
+        job.onImportError([
+          new TrackImportError(`Import interrupted unexpectedly: ${getErrorMessage(e)}`, ''),
+        ]);
+        job.onComplete();
+      });
+    });
     return job;
   }
 
