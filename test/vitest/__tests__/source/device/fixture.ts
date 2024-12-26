@@ -6,6 +6,7 @@ import { DeviceSource } from 'app/src-core/source/device';
 import { MockDeviceStorage } from 'app/test/vitest/mock/mock-device-storage';
 import { MockPlayer } from 'app/test/vitest/mock/mock-player';
 import { MockTrackStore } from 'app/test/vitest/mock/mock-track-store';
+import { resolve } from 'path';
 
 export const createDeviceLibraryFixture = () => {
   const trackStore = new MockTrackStore();
@@ -13,6 +14,8 @@ export const createDeviceLibraryFixture = () => {
   const player = new MockPlayer();
   const deviceSource = new DeviceSource(deviceStorage, player);
   const library = new Library({ player, store: { tracks: trackStore }, sources: [deviceSource] });
+
+  deviceStorage.fs.mkdirpSync(resolve('/'));
 
   return {
     deviceStorage,
