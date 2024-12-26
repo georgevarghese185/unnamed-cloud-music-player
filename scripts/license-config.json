@@ -1,20 +1,22 @@
 {
   "patterns": ["**/*"],
   "exclude": [
-    "node_modules/**/*",
-    ".quasar/**/*",
     ".github/**/*",
+    ".quasar/**/*",
     ".vscode/**/*",
+    "node_modules/**/*",
     "src-electron/icons/*",
+    "test/cypress/{fixtures,screenshots,videos}/**/*",
     ".npmrc",
     ".nvmrc",
-    "LICENSE",
-    "README.md",
-    "yarn.lock",
-    "quasar.config.ts*",
-    "vitest.config.mts",
-    "postcss.config.js",
+    "cypress.config.ts",
     "eslint.config.js",
+    "LICENSE",
+    "postcss.config.js",
+    "quasar.config.ts*",
+    "README.md",
+    "vitest.config.mts",
+    "yarn.lock",
     "**/*.{ico,svg,png,json}"
   ]
 }
