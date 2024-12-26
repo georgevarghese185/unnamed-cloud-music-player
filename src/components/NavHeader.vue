@@ -9,6 +9,7 @@
       :key="link.title"
       :to="link.path"
       class="text-h3 link text-black"
+      data-cy="nav-page-title"
     >
       {{ link.title }}
     </router-link>

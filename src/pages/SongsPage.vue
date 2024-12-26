@@ -3,7 +3,7 @@
 - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-  <div class="q-pl-md" style="flex: 1 1 auto; overflow: auto">
+  <div class="q-pl-md" data-cy="songs-page" style="flex: 1 1 auto; overflow: auto">
     <q-virtual-scroll :items="tracks" separator v-slot="{ item }">
       <q-item :key="item.id" dense class="row items-center q-mt-md no-border">
         <img class="album-art" />
