@@ -7,11 +7,21 @@
 import type { Player } from 'app/src-core/player';
 import mime from 'mime';
 
+const AUDIO_ELEMENT_ID = 'music-player';
+
 export default class HtmlPlayer implements Player {
   private audio: HTMLAudioElement;
 
   constructor() {
-    this.audio = document.createElement('audio');
+    let audioElement: HTMLAudioElement | null = document.querySelector(`#${AUDIO_ELEMENT_ID}`);
+
+    if (!audioElement) {
+      audioElement = document.createElement('audio');
+      audioElement.id = AUDIO_ELEMENT_ID;
+      document.body.appendChild(audioElement);
+    }
+
+    this.audio = audioElement;
   }
 
   supports(fileExtension: string): boolean {
