@@ -17,6 +17,7 @@ export type FsCallback<T extends unknown[]> = (
 export type Fs = {
   readdir: (path: string, callback: FsCallback<[files: string[]]>) => void;
   stat: (path: string, callback: FsCallback<[stats: nodeFs.Stats]>) => void;
+  createReadStream: (path: string) => nodeFs.ReadStream;
 };
 
 export class NodeFsDeviceStorage implements DeviceStorage {
@@ -42,6 +43,35 @@ export class NodeFsDeviceStorage implements DeviceStorage {
         path,
       } as File;
     }
+  }
+
+  readFile(path: string): Promise<ReadableStream<Uint8Array>> {
+    const stream = this.fs.createReadStream(path);
+
+    return Promise.resolve(
+      new ReadableStream({
+        start(controller) {
+          stream.on('data', (chunk) => {
+            if (Buffer.isBuffer(chunk)) {
+              controller.enqueue(new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength));
+            } else {
+              controller.enqueue(new TextEncoder().encode(chunk));
+            }
+          });
+
+          stream.on('end', () => {
+            controller.close();
+          });
+
+          stream.on('error', (err) => {
+            controller.error(err);
+          });
+        },
+        cancel() {
+          stream.destroy();
+        },
+      }),
+    );
   }
 
   private async isDirectory(path: string) {

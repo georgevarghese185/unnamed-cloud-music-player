@@ -77,7 +77,6 @@ export default function useLibrary() {
       progress: importProgress,
       errors: importErrors,
     },
-    player: library.value.player,
     getSource: library.value.getSource.bind(library.value),
     tracks: {
       list: tracks,

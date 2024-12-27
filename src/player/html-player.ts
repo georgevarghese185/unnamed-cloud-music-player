@@ -33,4 +33,8 @@ export default class HtmlPlayer implements Player {
 
     return !!this.audio.canPlayType(mimeType);
   }
+
+  play(): void {
+    throw new Error('Method not implemented.');
+  }
 }

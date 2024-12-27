@@ -6,15 +6,23 @@ import type { Track } from 'app/src-core/library/track';
 import { TrackImportError } from 'app/src-core/library/track-importer';
 import type { Directory } from 'app/src-core/storage/device';
 import { createDeviceLibraryFixture } from './fixture';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { deviceTrackExpectation } from '../../expectation/track';
 import { resolve } from 'path';
+import MemoryFileSystem from 'memory-fs';
 
 describe('Import from device source', () => {
-  it('should import a single track from a device source', async () => {
-    const { deviceStorage, deviceSource, library } = createDeviceLibraryFixture();
+  let fs = new MemoryFileSystem();
 
-    deviceStorage.fs.writeFileSync(resolve('/test.mp3'), '0');
+  beforeEach(() => {
+    fs = new MemoryFileSystem();
+    fs.mkdirSync(resolve('/'));
+  });
+
+  it('should import a single track from a device source', async () => {
+    const { deviceSource, library } = createDeviceLibraryFixture(fs);
+
+    fs.writeFileSync(resolve('/test.mp3'), '0');
 
     const job = await library.import(deviceSource, [resolve('/test.mp3')]);
     const progress = await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
@@ -27,17 +35,17 @@ describe('Import from device source', () => {
   });
 
   it('should scan a folder recursively and import all music files', async () => {
-    const { trackStore, deviceStorage, deviceSource, library } = createDeviceLibraryFixture();
+    const { trackStore, deviceSource, library } = createDeviceLibraryFixture(fs);
 
-    deviceStorage.fs.mkdirpSync(resolve('/folder'));
-    deviceStorage.fs.writeFileSync(resolve('/folder/song1.mp3'), '0');
-    deviceStorage.fs.writeFileSync(resolve('/folder/song2.mp3'), '0');
-    deviceStorage.fs.mkdirpSync(resolve('/folder/subfolder1'));
-    deviceStorage.fs.writeFileSync(resolve('/folder/subfolder1/irrelevant.txt'), '0');
-    deviceStorage.fs.writeFileSync(resolve('/folder/subfolder1/song3.ogg'), '0');
-    deviceStorage.fs.writeFileSync(resolve('/folder/subfolder1/song4.aac'), '0');
+    fs.mkdirSync(resolve('/folder'));
+    fs.writeFileSync(resolve('/folder/song1.mp3'), '0');
+    fs.writeFileSync(resolve('/folder/song2.mp3'), '0');
+    fs.mkdirSync(resolve('/folder/subfolder1'));
+    fs.writeFileSync(resolve('/folder/subfolder1/irrelevant.txt'), '0');
+    fs.writeFileSync(resolve('/folder/subfolder1/song3.ogg'), '0');
+    fs.writeFileSync(resolve('/folder/subfolder1/song4.aac'), '0');
     // empty folder
-    deviceStorage.fs.mkdirpSync(resolve('/folder/subfolder1/sub-subfolder'));
+    fs.mkdirSync(resolve('/folder/subfolder1/sub-subfolder'));
 
     const job = await library.import(deviceSource, [resolve('/folder')]);
     const importEvents: { tracks: Track[]; progress: ImportProgress }[] = [];
@@ -87,12 +95,12 @@ describe('Import from device source', () => {
   });
 
   it('should accumulate errors from trying to access folders', async () => {
-    const { deviceStorage, deviceSource, library } = createDeviceLibraryFixture();
+    const { deviceStorage, deviceSource, library } = createDeviceLibraryFixture(fs);
 
-    deviceStorage.fs.mkdirpSync(resolve('/folder'));
-    deviceStorage.fs.writeFileSync(resolve('/folder/song1.mp3'), '0');
-    deviceStorage.fs.writeFileSync(resolve('/folder/song2.mp3'), '0');
-    deviceStorage.fs.mkdirpSync(resolve('/folder/errorFolder'));
+    fs.mkdirSync(resolve('/folder'));
+    fs.writeFileSync(resolve('/folder/song1.mp3'), '0');
+    fs.writeFileSync(resolve('/folder/song2.mp3'), '0');
+    fs.mkdirSync(resolve('/folder/errorFolder'));
 
     const listFilesOriginal = deviceStorage.listFiles.bind(deviceStorage);
     const spy = vi.spyOn(deviceStorage, 'listFiles');
@@ -131,9 +139,9 @@ describe('Import from device source', () => {
   });
 
   it('should record an error if the selected file is not a supported audio file', async () => {
-    const { deviceStorage, deviceSource, library } = createDeviceLibraryFixture();
+    const { deviceSource, library } = createDeviceLibraryFixture(fs);
 
-    deviceStorage.fs.writeFileSync(resolve('/notAsong.txt'), '0');
+    fs.writeFileSync(resolve('/notAsong.txt'), '0');
 
     const job = await library.import(deviceSource, [resolve('/notAsong.txt')]);
 
@@ -149,14 +157,14 @@ describe('Import from device source', () => {
   });
 
   it('should handle multiple selected files/folders', async () => {
-    const { deviceStorage, deviceSource, library } = createDeviceLibraryFixture();
+    const { deviceSource, library } = createDeviceLibraryFixture(fs);
 
-    deviceStorage.fs.writeFileSync(resolve('/song1.mp3'), '0');
-    deviceStorage.fs.writeFileSync(resolve('/song2.mp3'), '0');
-    deviceStorage.fs.mkdirpSync(resolve('/folder'));
-    deviceStorage.fs.writeFileSync(resolve('/folder/song3.mp3'), '0');
-    deviceStorage.fs.mkdirpSync(resolve('/folder/subfolder'));
-    deviceStorage.fs.writeFileSync(resolve('/folder/subfolder/song4.mp3'), '0');
+    fs.writeFileSync(resolve('/song1.mp3'), '0');
+    fs.writeFileSync(resolve('/song2.mp3'), '0');
+    fs.mkdirSync(resolve('/folder'));
+    fs.writeFileSync(resolve('/folder/song3.mp3'), '0');
+    fs.mkdirSync(resolve('/folder/subfolder'));
+    fs.writeFileSync(resolve('/folder/subfolder/song4.mp3'), '0');
 
     const job = await library.import(
       deviceSource,
@@ -184,16 +192,16 @@ describe('Import from device source', () => {
   it('should not import the same file twice', async () => {
     const song1Path = '/folder/song1.mp3';
     const song2Path = '/folder/song2.mp3';
-    const { deviceStorage, deviceSource, library } = createDeviceLibraryFixture();
-    deviceStorage.fs.mkdirpSync(resolve('/folder'));
+    const { deviceSource, library } = createDeviceLibraryFixture(fs);
+    fs.mkdirSync(resolve('/folder'));
 
     // import song1
-    deviceStorage.fs.writeFileSync(resolve(song1Path), '0');
+    fs.writeFileSync(resolve(song1Path), '0');
     let job = await library.import(deviceSource, [resolve('/folder')]);
     await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
 
     // add one more song
-    deviceStorage.fs.writeFileSync(resolve(song2Path), '0');
+    fs.writeFileSync(resolve(song2Path), '0');
 
     // import again
     job = await library.import(deviceSource, [resolve('/folder')]);

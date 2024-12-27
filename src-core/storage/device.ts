@@ -7,6 +7,7 @@
 export interface DeviceStorage {
   listFiles(dir: Directory): Promise<DeviceFile[]>;
   getFile(path: string): Promise<DeviceFile>;
+  readFile(path: string): Promise<ReadableStream<Uint8Array>>;
 }
 
 export type DeviceFile = File | Directory;

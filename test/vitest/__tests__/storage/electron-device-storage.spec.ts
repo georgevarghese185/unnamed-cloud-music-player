@@ -5,13 +5,16 @@ import { ElectronDeviceStorage } from 'app/src-electron/storage/device/electron-
 import type { Directory, File } from 'app/src-core/storage/device';
 import { resolve } from 'path';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { MockDeviceStorage } from '../../mock/mock-device-storage';
+import { NodeFsDeviceStorage } from 'app/src-electron/storage/device/node-fs-device-storage';
+import MemoryFileSystem from 'memory-fs';
 
-let storage = new MockDeviceStorage();
+let fs = new MemoryFileSystem();
+let storage = new NodeFsDeviceStorage(fs);
 
 describe('Electron Device Storage', () => {
   beforeEach(() => {
-    storage = new MockDeviceStorage();
+    fs = new MemoryFileSystem();
+    storage = new NodeFsDeviceStorage(fs);
     window.bridge = {
       file: {
         getFile: storage.getFile.bind(storage),
@@ -24,8 +27,8 @@ describe('Electron Device Storage', () => {
   });
 
   it('should get single file', async () => {
-    storage.fs.mkdirpSync(resolve('/'));
-    storage.fs.writeFileSync(resolve('/file1.txt'), '0');
+    fs.mkdirpSync(resolve('/'));
+    fs.writeFileSync(resolve('/file1.txt'), '0');
     const deviceStorage = new ElectronDeviceStorage();
 
     const file = await deviceStorage.getFile(resolve('/file1.txt'));
@@ -39,10 +42,10 @@ describe('Electron Device Storage', () => {
   });
 
   it('should list files for given directory', async () => {
-    storage.fs.mkdirpSync(resolve('/'));
-    storage.fs.writeFileSync(resolve(`/file1.txt`), '0');
-    storage.fs.writeFileSync(resolve(`/file2.txt`), '0');
-    storage.fs.mkdirSync(resolve(`/subfolder`));
+    fs.mkdirpSync(resolve('/'));
+    fs.writeFileSync(resolve(`/file1.txt`), '0');
+    fs.writeFileSync(resolve(`/file2.txt`), '0');
+    fs.mkdirSync(resolve(`/subfolder`));
 
     const deviceStorage = new ElectronDeviceStorage();
 

@@ -6,4 +6,5 @@
 
 export interface Player {
   supports(fileExtension: string): boolean;
+  play(stream: ReadableStream<Uint8Array>): void;
 }
