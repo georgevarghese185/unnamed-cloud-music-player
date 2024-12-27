@@ -6,7 +6,7 @@
 
 import type { TrackImporter } from '../library/track-importer';
 
-export interface Source<K extends string, I> {
+export interface Source<K extends string, I, M> {
   name: K;
-  import(inputs: I): TrackImporter;
+  import(inputs: I): TrackImporter<K, M>;
 }

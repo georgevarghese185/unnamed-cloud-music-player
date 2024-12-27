@@ -45,7 +45,7 @@ describe('IndexedDB track store', () => {
     await store.add(tracks);
 
     // @ts-expect-error ignore undefined
-    const tracksToFind: Track<DeviceSourceMetadata>[] = [tracks[0], tracks[2]];
+    const tracksToFind: Track<'device', DeviceSourceMetadata>[] = [tracks[0], tracks[2]];
     const foundTracks = await store.findByIdentifiers([
       // @ts-expect-error ignore undefined
       tracksToFind[0].identifiers[0],

@@ -27,7 +27,7 @@ export type LibraryOptions = {
   store: {
     tracks: TrackStore;
   };
-  sources: Source<string, unknown>[];
+  sources: Source<string, unknown, unknown>[];
 };
 
 export class Library {
@@ -39,12 +39,12 @@ export class Library {
     this.tracks = options.store.tracks;
   }
 
-  getSource<K extends string, I, S extends Source<K, I>>(sourceName: K): S | undefined {
+  getSource<K extends string, I, M, S extends Source<K, I, M>>(sourceName: K): S | undefined {
     const source = this.options.sources.find((s): s is S => s.name === sourceName);
     return source;
   }
 
-  import<K extends string, I, S extends Source<K, I>>(source: S, inputs: I): ImportJob {
+  import<K extends string, I, M, S extends Source<K, I, M>>(source: S, inputs: I): ImportJob {
     const importer = source.import(inputs);
     const job = new ImportJobImpl();
     setTimeout(() => {
@@ -58,7 +58,10 @@ export class Library {
     return job;
   }
 
-  private async startImport(importer: TrackImporter, job: ImportJobImpl) {
+  private async startImport<K extends string, M>(
+    importer: TrackImporter<K, M>,
+    job: ImportJobImpl,
+  ) {
     let imports: (Track | TrackImportError)[] | null;
     const trackStore = this.options.store.tracks;
 

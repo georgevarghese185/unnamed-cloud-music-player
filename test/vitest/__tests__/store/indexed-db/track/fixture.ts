@@ -5,7 +5,7 @@ import type { Track } from 'app/src-core/library';
 import type { DeviceSourceMetadata } from 'app/src-core/source/device';
 import { basename } from 'path';
 
-export const createTracks = (filePaths: string[]): Track<DeviceSourceMetadata>[] => {
+export const createTracks = (filePaths: string[]): Track<'device', DeviceSourceMetadata>[] => {
   return filePaths.map((path) => ({
     id: 0,
     name: basename(path),

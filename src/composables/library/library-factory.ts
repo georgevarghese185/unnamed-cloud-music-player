@@ -17,7 +17,7 @@ export default function createLibrary() {
   const $q = useQuasar();
   const player = new HtmlPlayer();
 
-  const sources: Source<string, unknown>[] = [];
+  const sources: Source<string, unknown, unknown>[] = [];
 
   if ($q.platform.is.electron) {
     sources.push(new DeviceSource(new ElectronDeviceStorage(), player));

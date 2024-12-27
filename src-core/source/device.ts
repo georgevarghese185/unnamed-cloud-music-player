@@ -22,24 +22,12 @@ import type { Source } from './source';
 
 export type DeviceSourceName = 'device';
 export const DEVICE_SOURCE_NAME: DeviceSourceName = 'device';
-
-const createTrack = (file: File): Track<DeviceSourceMetadata> => {
-  return {
-    id: 0,
-    name: file.name,
-    identifiers: [
-      {
-        name: IDENTIFIER_FILE_PATH,
-        value: file.path,
-      },
-    ],
-    source: { name: DEVICE_SOURCE_NAME, meta: { filePath: file.path } },
-  };
+export const IDENTIFIER_FILE_PATH = 'file_path';
+export type DeviceSourceMetadata = {
+  filePath: string;
 };
 
-export const IDENTIFIER_FILE_PATH = 'file_path';
-
-export class DeviceSource implements Source<'device', string[]> {
+export class DeviceSource implements Source<'device', string[], DeviceSourceMetadata> {
   name = DEVICE_SOURCE_NAME;
 
   constructor(
@@ -47,7 +35,7 @@ export class DeviceSource implements Source<'device', string[]> {
     private player: Player,
   ) {}
 
-  import(paths: string[]): TrackImporter {
+  import(paths: string[]): TrackImporter<'device', DeviceSourceMetadata> {
     return new TrackImporter((queue) => {
       this.importFromPaths(paths, queue).catch((e) => {
         void queue.push(
@@ -60,7 +48,10 @@ export class DeviceSource implements Source<'device', string[]> {
     });
   }
 
-  private async importFromPaths(sourcePaths: string[], queue: ImportQueue) {
+  private async importFromPaths(
+    sourcePaths: string[],
+    queue: ImportQueue<'device', DeviceSourceMetadata>,
+  ) {
     let files = await this.getFiles(sourcePaths, queue);
     let file;
 
@@ -87,7 +78,10 @@ export class DeviceSource implements Source<'device', string[]> {
    * Gets `DeviceFile`s for the given device storage paths. Any errors that occur while trying to get a file will be
    * be pushed to the queue as `TrackImportError`s
    */
-  private async getFiles(paths: string[], queue: ImportQueue): Promise<DeviceFile[]> {
+  private async getFiles(
+    paths: string[],
+    queue: ImportQueue<'device', DeviceSourceMetadata>,
+  ): Promise<DeviceFile[]> {
     const files: DeviceFile[] = [];
 
     await Promise.all(
@@ -105,6 +99,16 @@ export class DeviceSource implements Source<'device', string[]> {
   }
 }
 
-export type DeviceSourceMetadata = {
-  filePath: string;
+const createTrack = (file: File): Track<'device', DeviceSourceMetadata> => {
+  return {
+    id: 0,
+    name: file.name,
+    identifiers: [
+      {
+        name: IDENTIFIER_FILE_PATH,
+        value: file.path,
+      },
+    ],
+    source: { name: DEVICE_SOURCE_NAME, meta: { filePath: file.path } },
+  };
 };
