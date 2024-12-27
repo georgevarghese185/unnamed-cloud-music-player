@@ -49,7 +49,7 @@ yarn dev
 ### Run electron app
 
 ```sh
-yarn dev -m electron
+yarn dev:electron
 ```
 
 ### Lint and Format
@@ -58,5 +58,5 @@ Use ESLint and Prettier to fix whatever style and formatting issues you can befo
 
 ```sh
 yarn lint
-yarn format --write
+yarn format
 ```
