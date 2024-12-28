@@ -4,9 +4,16 @@
 import { ElectronDeviceStorage } from 'app/src-electron/storage/device/electron-device-storage';
 import type { Directory, File } from 'app/src-core/storage/device';
 import { resolve } from 'path';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NodeFsDeviceStorage } from 'app/src-electron/storage/device/node-fs-device-storage';
 import MemoryFileSystem from 'memory-fs';
+import { bridge } from 'app/src-electron/bridge';
+import { setupIpcForBridgeApi } from 'app/src-electron/bridge/ipc/setup';
+import type { BaseWindow } from 'electron';
+import { randomBytes } from 'crypto';
+import { hashBuffer, hashUint8Array } from '../util/hash';
+
+vi.mock('electron');
 
 let fs = new MemoryFileSystem();
 let storage = new NodeFsDeviceStorage(fs);
@@ -15,15 +22,8 @@ describe('Electron Device Storage', () => {
   beforeEach(() => {
     fs = new MemoryFileSystem();
     storage = new NodeFsDeviceStorage(fs);
-    window.bridge = {
-      file: {
-        getFile: storage.getFile.bind(storage),
-        listFiles: storage.listFiles.bind(storage),
-        openFileSelector: () => {
-          throw new Error('not implemented');
-        },
-      },
-    };
+    window.bridge = bridge;
+    setupIpcForBridgeApi({} as BaseWindow, storage);
   });
 
   it('should get single file', async () => {
@@ -74,5 +74,30 @@ describe('Electron Device Storage', () => {
         },
       ]),
     );
+  });
+
+  it('should stream a file', async () => {
+    const fileData = randomBytes(512);
+
+    fs.mkdirpSync(resolve('/'));
+    fs.writeFileSync(resolve(`/file1.txt`), fileData);
+
+    const deviceStorage = new ElectronDeviceStorage();
+
+    const stream = await deviceStorage.readFile(resolve('/file1.txt'));
+
+    const reader = stream.getReader();
+    let isDone = false;
+    const chunks: Uint8Array[] = [];
+
+    do {
+      const { done, value } = await reader.read();
+      isDone = done;
+      if (value) {
+        chunks.push(value);
+      }
+    } while (!isDone);
+
+    expect(hashUint8Array(chunks)).toEqual(hashBuffer(fileData));
   });
 });

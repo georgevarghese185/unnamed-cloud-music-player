@@ -48,7 +48,7 @@ export class DeviceSource implements Source<'device', string[], DeviceSourceMeta
     });
   }
 
-  stream(track: Track<'device', DeviceSourceMetadata>): Promise<ReadableStream<Uint8Array>> {
+  stream(track: Track<'device', DeviceSourceMetadata>): ReadableStream<Uint8Array> {
     return this.storage.readFile(track.source.meta.filePath);
   }
 

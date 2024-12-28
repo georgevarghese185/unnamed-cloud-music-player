@@ -6,7 +6,8 @@
 
 import type { BaseWindow } from 'electron';
 import { setupFileIpc } from './file';
+import { NodeFsDeviceStorage } from 'app/src-electron/storage/device/node-fs-device-storage';
 
-export function setupIpcForBridgeApi(window: BaseWindow) {
-  setupFileIpc(window);
+export function setupIpcForBridgeApi(window: BaseWindow, storage = new NodeFsDeviceStorage()) {
+  setupFileIpc(window, storage);
 }

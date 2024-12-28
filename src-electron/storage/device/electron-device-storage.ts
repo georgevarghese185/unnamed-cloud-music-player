@@ -15,7 +15,29 @@ export class ElectronDeviceStorage implements DeviceStorage {
     return window.bridge.file.getFile(path);
   }
 
-  readFile(_path: string): Promise<ReadableStream<Uint8Array>> {
-    throw new Error('Method not implemented.');
+  readFile(path: string): ReadableStream<Uint8Array> {
+    let cancel: (() => void) | null = null;
+
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const _cancel = await window.bridge.file.readFile(path, {
+          onData(chunk) {
+            controller.enqueue(chunk);
+          },
+          onEnd() {
+            controller.close();
+          },
+          onError(e) {
+            controller.error(e);
+          },
+        });
+        cancel = _cancel;
+      },
+      cancel() {
+        cancel?.();
+      },
+    });
+
+    return stream;
   }
 }

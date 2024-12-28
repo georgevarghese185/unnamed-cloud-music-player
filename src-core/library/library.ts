@@ -56,14 +56,14 @@ export class Library {
     return job;
   }
 
-  async play(track: Track): Promise<void> {
+  play(track: Track) {
     const source = this.getSource(track.source.name);
 
     if (!source) {
       throw new UnsupportedSourceError(track.source.name);
     }
 
-    const stream = await source.stream(track);
+    const stream = source.stream(track);
     this.options.player.play(stream);
   }
 

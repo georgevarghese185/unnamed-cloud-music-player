@@ -7,21 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { resolve } from 'path';
 import * as nodeFs from 'fs';
 import { fail } from 'assert';
-import { createHash } from 'crypto';
-
-function hashFile(filePath: string) {
-  const hash = createHash('sha256');
-  const data = nodeFs.readFileSync(filePath);
-  hash.update(data);
-
-  return hash.digest('hex');
-}
-
-function hashUint8Array(uint8Array: Uint8Array[]) {
-  const hash = createHash('sha256');
-  uint8Array.map((chunk) => hash.update(chunk));
-  return hash.digest('hex');
-}
+import { hashFile, hashUint8Array } from '../../util/hash';
 
 describe('Play from device source', () => {
   it('should play a single track', async () => {
@@ -57,7 +43,7 @@ describe('Play from device source', () => {
           const fileHash = hashFile(filePath);
           const chunksHash = hashUint8Array(chunks);
 
-          expect(fileHash).toEqual(chunksHash);
+          expect(chunksHash).toEqual(fileHash);
 
           resolve();
         }
@@ -65,7 +51,7 @@ describe('Play from device source', () => {
         validateStream().catch(reject);
       });
 
-      library.play(track).catch(reject);
+      library.play(track);
     });
   });
 });

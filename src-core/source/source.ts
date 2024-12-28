@@ -10,5 +10,5 @@ import type { TrackImporter } from '../library/track-importer';
 export interface Source<K extends string, I, M> {
   name: K;
   import(inputs: I): TrackImporter<K, M>;
-  stream(track: Track<K, M>): Promise<ReadableStream<Uint8Array>>;
+  stream(track: Track<K, M>): ReadableStream<Uint8Array>;
 }
