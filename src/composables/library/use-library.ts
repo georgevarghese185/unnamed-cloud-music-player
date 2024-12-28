@@ -82,5 +82,6 @@ export default function useLibrary() {
       list: tracks,
       find: findTracks,
     },
+    play: library.value.play.bind(library.value),
   };
 }

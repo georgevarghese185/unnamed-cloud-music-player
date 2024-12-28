@@ -25,8 +25,10 @@ describe('Play from device source', () => {
     }
 
     await new Promise<void>((resolve, reject) => {
-      vi.spyOn(player, 'play').mockImplementationOnce((stream) => {
+      vi.spyOn(player, 'play').mockImplementationOnce((_track, stream) => {
         async function validateStream() {
+          expect(_track).toEqual(track);
+
           const reader = stream.getReader();
           let isDone = true;
           let chunks: Uint8Array[] = [];

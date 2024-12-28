@@ -64,7 +64,7 @@ export class Library {
     }
 
     const stream = source.stream(track);
-    this.options.player.play(stream);
+    this.options.player.play(track, stream);
   }
 
   private async startImport<K extends string, M>(

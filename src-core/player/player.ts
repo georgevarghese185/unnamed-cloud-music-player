@@ -4,7 +4,30 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import type { Track } from '../library';
+
+export type PlayerEvents = {
+  started: (track: Track) => void;
+  buffering: (track: Track) => void;
+  playing: (track: Track) => void;
+  paused: (track: Track) => void;
+  stopped: (track: Track) => void;
+  error: (e: PlaybackError) => void;
+};
+
+export class PlaybackError extends Error {
+  constructor(
+    reason: string,
+    public readonly track?: Track,
+  ) {
+    super(`Playback Error${track ? `: Error while playing ${track.name}` : ''}: ${reason}`);
+  }
+}
+
 export interface Player {
   supports(fileExtension: string): boolean;
-  play(stream: ReadableStream<Uint8Array>): void;
+  play(track: Track, stream: ReadableStream<Uint8Array>): void;
+  on<Event extends keyof PlayerEvents>(event: Event, handler: PlayerEvents[Event]): void;
+  once<Event extends keyof PlayerEvents>(event: Event, handler: PlayerEvents[Event]): void;
+  off<Event extends keyof PlayerEvents>(event: Event, handler: PlayerEvents[Event]): void;
 }
