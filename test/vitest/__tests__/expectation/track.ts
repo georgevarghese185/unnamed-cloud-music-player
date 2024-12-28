@@ -1,7 +1,7 @@
 /* Any copyright is dedicated to the Public Domain.
  * https://creativecommons.org/publicdomain/zero/1.0/ */
 
-import { basename, resolve } from 'path';
+import { basename, resolve, extname } from 'path';
 import { expect } from 'vitest';
 
 export const deviceTrackExpectation = (path: string) => ({
@@ -13,6 +13,14 @@ export const deviceTrackExpectation = (path: string) => ({
       value: resolve(path),
     },
   ],
+  mime:
+    extname(path) === '.mp3'
+      ? 'audio/mpeg'
+      : extname(path) === '.ogg'
+        ? 'audio/ogg'
+        : extname(path) === '.aac'
+          ? 'audio/aac'
+          : '',
   source: {
     name: 'device',
     meta: {

@@ -14,6 +14,7 @@ export type Identifier = {
 export type Track<K extends string = string, M = unknown> = {
   id: number;
   name: string;
+  mime: string;
   identifiers: Identifier[];
   source: {
     name: K;

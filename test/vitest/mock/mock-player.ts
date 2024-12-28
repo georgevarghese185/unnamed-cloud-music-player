@@ -16,7 +16,7 @@ export class MockPlayer implements Player {
     throw new Error('Method not implemented.');
   }
   supports(ext: string) {
-    return ['.mp3', '.ogg', '.aac'].includes(ext);
+    return ['audio/mpeg', 'audio/ogg', 'audio/aac'].includes(ext);
   }
   play(_track: Track, _stream: ReadableStream<Uint8Array>): void {
     throw new Error('Method not implemented.');

@@ -9,7 +9,6 @@ import type { Track } from 'app/src-core/library';
 import type { Player } from 'app/src-core/player';
 import { PlaybackError, type PlayerEvents } from 'app/src-core/player/player';
 import EventEmitter from 'events';
-import mime from 'mime';
 import type TypedEventEmitter from 'typed-emitter';
 
 const AUDIO_ELEMENT_ID = 'music-player';
@@ -88,13 +87,7 @@ export default class HtmlPlayer implements Player {
     this.events.off(event, handler);
   }
 
-  supports(fileExtension: string): boolean {
-    const mimeType = mime.getType(fileExtension);
-
-    if (!mimeType) {
-      return false;
-    }
-
+  supports(mimeType: string): boolean {
     return !!this.audio.canPlayType(mimeType);
   }
 

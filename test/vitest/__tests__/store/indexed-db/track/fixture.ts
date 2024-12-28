@@ -3,7 +3,7 @@
 
 import type { Track } from 'app/src-core/library';
 import type { DeviceSourceMetadata } from 'app/src-core/source/device';
-import { basename } from 'path';
+import { basename, extname } from 'path';
 
 export const createTracks = (filePaths: string[]): Track<'device', DeviceSourceMetadata>[] => {
   return filePaths.map((path) => ({
@@ -15,6 +15,14 @@ export const createTracks = (filePaths: string[]): Track<'device', DeviceSourceM
         value: path,
       },
     ],
+    mime:
+      extname(path) === '.mp3'
+        ? 'audio/mpeg'
+        : extname(path) === '.ogg'
+          ? 'audio/ogg'
+          : extname(path) === '.aac'
+            ? 'audio/aac'
+            : '',
     source: {
       meta: { filePath: path },
       name: 'device',

@@ -13,6 +13,7 @@ import { TrackImportError } from '../library/track-importer';
 import type { Player } from '../player';
 import type { DeviceFile, DeviceStorage, File } from '../storage/device';
 import type { Source } from './source';
+import mime from 'mime';
 
 /**
  *
@@ -67,11 +68,14 @@ export class DeviceSource implements Source<'device', string[], DeviceSourceMeta
         } catch (e) {
           await queue.push(new TrackImportError(getErrorMessage(e), file.path));
         }
-      } else if (this.player.supports(file.ext)) {
-        await queue.push(createTrack(file));
-      } else if (sourcePaths.includes(file.path)) {
-        // the selected source file is not a supported audio file. Notify the user
-        await queue.push(new TrackImportError(UNSUPPORTED_FILE, file.path));
+      } else {
+        const mimeType = mime.getType(file.ext) || '';
+        if (this.player.supports(mimeType)) {
+          await queue.push(createTrack(file, mimeType));
+        } else if (sourcePaths.includes(file.path)) {
+          // the selected source file is not a supported audio file. Notify the user
+          await queue.push(new TrackImportError(UNSUPPORTED_FILE, file.path));
+        }
       }
     }
 
@@ -103,10 +107,11 @@ export class DeviceSource implements Source<'device', string[], DeviceSourceMeta
   }
 }
 
-const createTrack = (file: File): Track<'device', DeviceSourceMetadata> => {
+const createTrack = (file: File, mimeType: string): Track<'device', DeviceSourceMetadata> => {
   return {
     id: 0,
     name: file.name,
+    mime: mimeType,
     identifiers: [
       {
         name: IDENTIFIER_FILE_PATH,
