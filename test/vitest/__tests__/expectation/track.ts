@@ -20,7 +20,9 @@ export const deviceTrackExpectation = (path: string) => ({
         ? 'audio/ogg'
         : extname(path) === '.aac'
           ? 'audio/aac'
-          : '',
+          : extname(path) === '.flac'
+            ? 'audio/flac'
+            : '',
   source: {
     name: 'device',
     meta: {

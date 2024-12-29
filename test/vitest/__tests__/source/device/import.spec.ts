@@ -44,6 +44,7 @@ describe('Import from device source', () => {
     fs.writeFileSync(resolve('/folder/subfolder1/irrelevant.txt'), '0');
     fs.writeFileSync(resolve('/folder/subfolder1/song3.ogg'), '0');
     fs.writeFileSync(resolve('/folder/subfolder1/song4.aac'), '0');
+    fs.writeFileSync(resolve('/folder/subfolder1/song5.flac'), '0');
     // empty folder
     fs.mkdirSync(resolve('/folder/subfolder1/sub-subfolder'));
 
@@ -69,7 +70,7 @@ describe('Import from device source', () => {
 
     expect(finalProgress).toEqual({
       completed: true,
-      imported: 4,
+      imported: 5,
       errors: [],
     } as ImportProgress);
 
@@ -79,10 +80,11 @@ describe('Import from device source', () => {
       deviceTrackExpectation('/folder/song2.mp3'),
       deviceTrackExpectation('/folder/subfolder1/song3.ogg'),
       deviceTrackExpectation('/folder/subfolder1/song4.aac'),
+      deviceTrackExpectation('/folder/subfolder1/song5.flac'),
     ];
 
     const actualTracks = await trackStore.list({ limit: 1000000, offset: 0 });
-    expect(actualTracks.length).toEqual(4);
+    expect(actualTracks.length).toEqual(5);
     expect(actualTracks).toEqual(expect.arrayContaining(expectedTracks));
     expect(importEvents.flatMap((event) => event.tracks)).toEqual(expectedTracks);
 
@@ -90,7 +92,7 @@ describe('Import from device source', () => {
       return tracks.concat(event.tracks);
     }, []);
 
-    expect(tracksFromEvents.length).toEqual(4);
+    expect(tracksFromEvents.length).toEqual(5);
     expect(tracksFromEvents).toEqual(expect.arrayContaining(expectedTracks));
   });
 

@@ -13,13 +13,19 @@ import { TrackImportError } from '../library/track-importer';
 import type { Player } from '../player';
 import type { DeviceFile, DeviceStorage, File } from '../storage/device';
 import type { Source } from './source';
-import mime from 'mime';
+import { Mime } from 'mime';
+import standardMimeTypes from 'mime/types/standard.js';
+import otherMimeTypes from 'mime/types/other.js';
 
 /**
  *
  * TODO: import tracks in a more parallel manner like a bunch at a time instead of one ot a time. But continue pushing them 1 at a time
  *
  */
+
+// override this library's audio/x-flac with audio/flac
+const mime = new Mime(standardMimeTypes, otherMimeTypes);
+mime.define({ 'audio/flac': ['flac'] }, true);
 
 export type DeviceSourceName = 'device';
 export const DEVICE_SOURCE_NAME: DeviceSourceName = 'device';
