@@ -4,7 +4,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { getErrorMessage } from 'app/src-core/error/util';
 import type { Track } from 'app/src-core/library';
 import type { Player } from 'app/src-core/player';
 import { PlaybackError, type PlayerEvents } from 'app/src-core/player/player';
@@ -13,6 +12,12 @@ import type TypedEventEmitter from 'typed-emitter';
 
 const AUDIO_ELEMENT_ID = 'music-player';
 const MAX_BUFFERED_SECONDS = 30;
+
+class MediaSourceUnsupportedError extends Error {
+  constructor(public readonly buffered: Uint8Array[]) {
+    super('MediaSource may not support this format');
+  }
+}
 
 export default class HtmlPlayer implements Player {
   private audio: HTMLAudioElement;
@@ -92,66 +97,122 @@ export default class HtmlPlayer implements Player {
   }
 
   play(track: Track, stream: ReadableStream<Uint8Array>): void {
-    const mediaSource = new MediaSource();
-    this.audio.src = URL.createObjectURL(mediaSource);
+    const play = async () => {
+      try {
+        this.currentlyPlaying = track;
+        this.events.emit('started', track);
+        await this.playAsMediaSource(track, stream);
+      } catch (e) {
+        if (e instanceof MediaSourceUnsupportedError) {
+          await this.playAsBlob(track, stream, e.buffered);
+        } else {
+          throw e;
+        }
+      }
+    };
 
-    mediaSource.addEventListener('sourceopen', () => {
-      this.currentlyPlaying = track;
-      this.events.emit('started', track);
-      this.events.emit('buffering', track);
-
-      const streamTrack = async () => {
-        // TODO: get extension/mime from track
-        const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
-        const reader = stream.getReader();
-        let ended = false;
-
-        do {
-          // current track was changed in between. Cancel
-          if (track.id !== this.currentlyPlaying?.id) {
-            void reader.cancel();
-            return;
-          }
-
-          const { done, value } = await reader.read();
-          ended = done;
-
-          if (value) {
-            await this.appendChunk(track, sourceBuffer, value);
-          }
-        } while (!ended);
-
-        mediaSource.endOfStream();
-      };
-
-      streamTrack().catch((e) =>
-        this.events.emit('error', new PlaybackError(getErrorMessage(e), track)),
-      );
-    });
+    play().catch((e) => this.events.emit('error', new PlaybackError(e.message)));
   }
 
-  private async appendChunk(track: Track, sourceBuffer: SourceBuffer, chunk: Uint8Array) {
+  private async playAsMediaSource(track: Track, stream: ReadableStream<Uint8Array>) {
+    const unplayedChunks: Uint8Array[] = [];
+
+    try {
+      let cancelled = false;
+      let playing = false;
+
+      // cancel if user starts another song
+      this.events.once('started', () => {
+        cancelled = true;
+      });
+
+      // cancel if audio playback errors out
+      this.audio.addEventListener(
+        'error',
+        () => {
+          cancelled = true;
+        },
+        { once: true },
+      );
+
+      const mediaSource = new MediaSource();
+
+      await new Promise((resolve) => {
+        mediaSource.addEventListener('sourceopen', resolve, { once: true });
+        this.audio.src = URL.createObjectURL(mediaSource);
+      });
+
+      if (cancelled) {
+        return;
+      }
+
+      this.audio
+        .play()
+        .then(() => (playing = true))
+        .catch(() => {});
+
+      const sourceBuffer = mediaSource.addSourceBuffer(track.mime);
+      const reader = stream.getReader();
+
+      for (
+        let { done, value } = await reader.read();
+        !done && !cancelled && value;
+        { done, value } = await reader.read()
+      ) {
+        if (!playing) {
+          unplayedChunks.push(value);
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        await this.bufferNotFull(sourceBuffer);
+
+        if (cancelled) {
+          return;
+        }
+
+        sourceBuffer.appendBuffer(value);
+        await this.bufferUpdated(sourceBuffer);
+      }
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'NotSupportedError') {
+        throw new MediaSourceUnsupportedError(unplayedChunks);
+      }
+
+      throw e;
+    }
+  }
+
+  private async playAsBlob(track: Track, stream: ReadableStream, buffered: Uint8Array[] = []) {
+    const reader = stream.getReader();
+
+    for (
+      let { done, value } = await reader.read();
+      !done && value;
+      { done, value } = await reader.read()
+    ) {
+      buffered.push(value);
+    }
+
+    const blob = new Blob(buffered);
+    this.audio.src = URL.createObjectURL(blob);
+    await this.audio.play();
+  }
+
+  private async bufferNotFull(sourceBuffer: SourceBuffer) {
     const buffered = sourceBuffer.buffered;
     const bufferEnd = buffered.length > 0 ? buffered.end(buffered.length - 1) : 0;
 
     while (this.audio.currentTime + MAX_BUFFERED_SECONDS < bufferEnd) {
       await new Promise((resolve) => setTimeout(resolve, 1));
     }
+  }
 
-    // current track was changed in between
-    if (track.id !== this.currentlyPlaying?.id) {
-      return;
-    }
-
-    sourceBuffer.appendBuffer(chunk);
-
-    await new Promise((resolve) =>
+  private bufferUpdated(sourceBuffer: SourceBuffer) {
+    return new Promise((resolve) =>
       sourceBuffer.addEventListener('updateend', resolve, { once: true }),
     );
-
-    // start playing but make sure current track wasn't changed while we were waiting
-    if (this.audio.paused && track.id === this.currentlyPlaying?.id) {
-      void this.audio.play();
-    }
   }
 }
