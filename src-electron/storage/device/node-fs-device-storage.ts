@@ -48,35 +48,39 @@ export class NodeFsDeviceStorage implements DeviceStorage {
   readFile(path: string): ReadableStream<Uint8Array> {
     const stream = this.fs.createReadStream(path);
 
-    return new ReadableStream({
-      start(controller) {
-        let closed = false;
+    return new ReadableStream(
+      {
+        type: 'bytes',
+        start(controller) {
+          stream.on('data', (chunk) => {
+            if (Buffer.isBuffer(chunk)) {
+              controller.enqueue(chunk);
+            } else {
+              controller.enqueue(new TextEncoder().encode(chunk));
+            }
 
-        stream.on('data', (chunk) => {
-          if (Buffer.isBuffer(chunk)) {
-            controller.enqueue(new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength));
-          } else {
-            controller.enqueue(new TextEncoder().encode(chunk));
-          }
-        });
+            if ((controller.desiredSize ?? Infinity) <= 0) {
+              stream.pause();
+            }
+          });
 
-        stream.on('end', () => {
-          if (closed) {
-            return;
-          }
-          controller.close();
-          closed = true;
-        });
+          stream.on('end', () => {
+            controller.close();
+          });
 
-        stream.on('error', (err) => {
-          controller.error(err);
-          closed = true;
-        });
+          stream.on('error', (err) => {
+            controller.error(err);
+          });
+        },
+        pull() {
+          stream.resume();
+        },
+        cancel() {
+          stream.destroy();
+        },
       },
-      cancel() {
-        stream.destroy();
-      },
-    });
+      { highWaterMark: 128000 },
+    );
   }
 
   private async isDirectory(path: string) {

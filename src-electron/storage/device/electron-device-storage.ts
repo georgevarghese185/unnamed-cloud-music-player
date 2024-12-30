@@ -17,12 +17,19 @@ export class ElectronDeviceStorage implements DeviceStorage {
 
   readFile(path: string): ReadableStream<Uint8Array> {
     let cancel: (() => void) | null = null;
+    let pause: (() => void) | null = null;
+    let resume: (() => void) | null = null;
 
     const stream = new ReadableStream<Uint8Array>({
+      type: 'bytes',
       async start(controller) {
-        const _cancel = await window.bridge.file.readFile(path, {
+        ({ cancel, pause, resume } = await window.bridge.file.readFile(path, {
           onData(chunk) {
             controller.enqueue(chunk);
+
+            if ((controller.desiredSize ?? Infinity) <= 0) {
+              pause?.();
+            }
           },
           onEnd() {
             controller.close();
@@ -30,8 +37,10 @@ export class ElectronDeviceStorage implements DeviceStorage {
           onError(e) {
             controller.error(e);
           },
-        });
-        cancel = _cancel;
+        }));
+      },
+      pull() {
+        resume?.();
       },
       cancel() {
         cancel?.();

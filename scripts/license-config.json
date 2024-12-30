@@ -13,6 +13,7 @@
     "**/*.mp3",
     "yarn.lock",
     "quasar.config.ts*",
+    "test/artifacts/**/*",
     "vitest.config.mts",
     "postcss.config.js",
     "eslint.config.js",

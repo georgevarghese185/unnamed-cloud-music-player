@@ -33,7 +33,7 @@ export type Bridge = {
         onEnd: () => void;
         onError: (e: unknown) => void;
       },
-    ) => Promise<() => void>;
+    ) => Promise<{ cancel: () => void; pause: () => void; resume: () => void }>;
   };
 };
 
@@ -49,39 +49,49 @@ export const bridge: Bridge = {
       return ipcRenderer.invoke(IPC_CHANNEL_OPEN_FILE_SELECTOR, options);
     },
     async readFile(path, callbacks) {
-      function onData(event: IpcRendererEvent, chunk: Uint8Array) {
-        callbacks.onData(chunk);
-      }
+      const fileId = await ipcRenderer.invoke(IPC_CHANNEL_READ_FILE, path);
 
-      function onEnd() {
+      ipcRenderer.on(
+        `${IPC_CHANNEL_READ_FILE}:${fileId}:data`,
+        (event: IpcRendererEvent, chunk: Uint8Array) => {
+          callbacks.onData(chunk);
+        },
+      );
+
+      ipcRenderer.on(`${IPC_CHANNEL_READ_FILE}:${fileId}:end`, () => {
         callbacks.onEnd();
-        final();
-      }
+        cleanup();
+      });
 
-      function onError(event: IpcRendererEvent, e: unknown) {
-        callbacks.onError(e);
-        final();
-      }
+      ipcRenderer.on(
+        `${IPC_CHANNEL_READ_FILE}:${fileId}:error`,
+        (event: IpcRendererEvent, e: unknown) => {
+          callbacks.onError(e);
+          cleanup();
+        },
+      );
 
-      function final() {
-        ipcRenderer.off(`${IPC_CHANNEL_READ_FILE}:${fileId}:data`, onData);
-        ipcRenderer.off(`${IPC_CHANNEL_READ_FILE}:${fileId}:end`, onEnd);
-        ipcRenderer.off(`${IPC_CHANNEL_READ_FILE}:${fileId}:error`, onError);
+      function cleanup() {
+        ipcRenderer.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:data`);
+        ipcRenderer.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:end`);
+        ipcRenderer.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:error`);
       }
 
       function cancel() {
         ipcRenderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:cancel`);
-        final();
+        cleanup();
       }
 
-      const fileId = await ipcRenderer.invoke(IPC_CHANNEL_READ_FILE, path);
-      ipcRenderer.on(`${IPC_CHANNEL_READ_FILE}:${fileId}:data`, onData);
-      ipcRenderer.on(`${IPC_CHANNEL_READ_FILE}:${fileId}:end`, onEnd);
-      ipcRenderer.on(`${IPC_CHANNEL_READ_FILE}:${fileId}:error`, onError);
+      function pause() {
+        ipcRenderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:pause`);
+      }
+
+      function resume() {
+        ipcRenderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:resume`);
+      }
 
       ipcRenderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:ready`);
-
-      return cancel;
+      return { cancel, pause, resume };
     },
   },
 };

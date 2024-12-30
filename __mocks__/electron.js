@@ -24,6 +24,7 @@ module.exports = {
         handler({}, ...args);
       });
     },
+    removeAllListeners: emitter.removeAllListeners.bind(emitter),
     send: emitter.emit.bind(emitter),
   },
   ipcMain: {
@@ -31,6 +32,7 @@ module.exports = {
       mainEvents[channel] = handler;
     },
     off: emitter.off.bind(emitter),
+    removeAllListeners: emitter.removeAllListeners.bind(emitter),
     on(channel, handler) {
       emitter.on(channel, (...args) => {
         handler({}, ...args);

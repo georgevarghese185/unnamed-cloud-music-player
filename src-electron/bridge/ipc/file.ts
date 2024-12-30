@@ -66,25 +66,51 @@ export function setupFileIpc(window: BaseWindow, storage: NodeFsDeviceStorage) {
 
     async function sendBytes() {
       try {
-        let end = true;
         let cancel = false;
+        let paused = false;
 
         ipcMain.once(`${IPC_CHANNEL_READ_FILE}:${fileId}:cancel`, () => {
           cancel = true;
         });
 
-        do {
-          const { done, value } = await reader.read();
-          end = done;
-          if (value) {
-            renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:data`, value);
-          }
-        } while (!end && !cancel);
+        ipcMain.on(`${IPC_CHANNEL_READ_FILE}:${fileId}:pause`, () => {
+          paused = true;
+        });
 
-        renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:end`);
+        ipcMain.on(`${IPC_CHANNEL_READ_FILE}:${fileId}:resume`, () => {
+          paused = false;
+        });
+
+        for (
+          let { done, value } = await reader.read();
+          !done && !cancel && value;
+          { done, value } = await reader.read()
+        ) {
+          renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:data`, value);
+
+          if (paused) {
+            await new Promise((resolve) =>
+              ipcMain.once(`${IPC_CHANNEL_READ_FILE}:${fileId}:resume`, resolve),
+            );
+          }
+        }
+
+        if (!cancel) {
+          renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:end`);
+        } else {
+          void stream.cancel();
+        }
       } catch (e) {
         renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:error`, e);
       }
+
+      cleanup();
+    }
+
+    function cleanup() {
+      ipcMain.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:cancel`);
+      ipcMain.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:pause`);
+      ipcMain.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:resume`);
     }
 
     ipcMain.once(`${IPC_CHANNEL_READ_FILE}:${fileId}:ready`, () => void sendBytes());
