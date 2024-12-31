@@ -17,13 +17,14 @@ export type FsCallback<T extends unknown[]> = (
 export type Fs = {
   readdir: (path: string, callback: FsCallback<[files: string[]]>) => void;
   stat: (path: string, callback: FsCallback<[stats: nodeFs.Stats]>) => void;
+  createReadStream: (path: string) => nodeFs.ReadStream;
 };
 
 export class NodeFsDeviceStorage implements DeviceStorage {
-  constructor(private fs: Fs = nodeFs) {}
+  constructor(protected fs: Fs = nodeFs) {}
 
   async listFiles(dir: Directory): Promise<DeviceFile[]> {
-    const files = await promisify(this.fs.readdir)(dir.path);
+    const files = await promisify(this.fs.readdir.bind(this.fs))(dir.path);
     return Promise.all(files.map((file) => this.getFile(join(dir.path, file))));
   }
 
@@ -44,8 +45,46 @@ export class NodeFsDeviceStorage implements DeviceStorage {
     }
   }
 
+  readFile(path: string): ReadableStream<Uint8Array> {
+    const stream = this.fs.createReadStream(path);
+
+    return new ReadableStream(
+      {
+        type: 'bytes',
+        start(controller) {
+          stream.on('data', (chunk) => {
+            if (Buffer.isBuffer(chunk)) {
+              controller.enqueue(chunk);
+            } else {
+              controller.enqueue(new TextEncoder().encode(chunk));
+            }
+
+            if ((controller.desiredSize ?? Infinity) <= 0) {
+              stream.pause();
+            }
+          });
+
+          stream.on('end', () => {
+            controller.close();
+          });
+
+          stream.on('error', (err) => {
+            controller.error(err);
+          });
+        },
+        pull() {
+          stream.resume();
+        },
+        cancel() {
+          stream.destroy();
+        },
+      },
+      { highWaterMark: 128000 },
+    );
+  }
+
   private async isDirectory(path: string) {
-    const fileStat = await promisify(this.fs.stat)(path);
+    const fileStat = await promisify(this.fs.stat.bind(this.fs))(path);
     return fileStat.isDirectory();
   }
 }

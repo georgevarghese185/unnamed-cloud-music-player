@@ -1,4 +1,5 @@
 yarn test:unit:ci
+yarn typecheck
 yarn lint
-yarn format --check
+yarn format:check
 yarn checklicense

@@ -54,7 +54,7 @@ export default function useLibrary() {
     importJob.value?.off('complete', onImportComplete);
   });
 
-  function startImport<K extends string, I>(source: Source<K, I>, inputs: I) {
+  function startImport<K extends string, I, M>(source: Source<K, I, M>, inputs: I) {
     const importInProgress = importProgress.value && !importProgress.value.completed;
 
     if (importInProgress) {
@@ -77,11 +77,11 @@ export default function useLibrary() {
       progress: importProgress,
       errors: importErrors,
     },
-    player: library.value.player,
     getSource: library.value.getSource.bind(library.value),
     tracks: {
       list: tracks,
       find: findTracks,
     },
+    play: library.value.play.bind(library.value),
   };
 }

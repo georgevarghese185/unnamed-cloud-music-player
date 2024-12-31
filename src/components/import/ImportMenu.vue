@@ -26,7 +26,7 @@ const library = useLibrary();
 const sourcePickerDialog = ref(false);
 const importDialog = ref(false);
 
-function startImport<K extends string, I>(source: Source<K, I>, inputs: I) {
+function startImport<K extends string, I, M>(source: Source<K, I, M>, inputs: I) {
   library.import.start(source, inputs);
   sourcePickerDialog.value = false;
   importDialog.value = true;

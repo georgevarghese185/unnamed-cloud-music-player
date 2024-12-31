@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { NodeFsDeviceStorage } from '../../storage/device/node-fs-device-storage';
+import type { NodeFsDeviceStorage } from '../../storage/device/node-fs-device-storage';
 import type { Directory } from 'app/src-core/storage/device';
 import type { BaseWindow, FileFilter, OpenDialogOptions } from 'electron';
 import { dialog, ipcMain } from 'electron';
@@ -12,9 +12,9 @@ import {
   IPC_CHANNEL_GET_FILE,
   IPC_CHANNEL_LIST_FILES,
   IPC_CHANNEL_OPEN_FILE_SELECTOR,
+  IPC_CHANNEL_READ_FILE,
 } from './channel';
-
-const storage = new NodeFsDeviceStorage();
+import { v7 } from 'uuid';
 
 export type OpenFileSectorOptions = {
   files?: boolean;
@@ -23,7 +23,7 @@ export type OpenFileSectorOptions = {
   filters?: FileFilter[];
 };
 
-export function setupFileIpc(window: BaseWindow) {
+export function setupFileIpc(window: BaseWindow, storage: NodeFsDeviceStorage) {
   ipcMain.handle(IPC_CHANNEL_LIST_FILES, (event, dir: Directory) => {
     return storage.listFiles(dir);
   });
@@ -56,5 +56,64 @@ export function setupFileIpc(window: BaseWindow) {
     }
 
     return result.filePaths;
+  });
+
+  ipcMain.handle(IPC_CHANNEL_READ_FILE, (event, path: string) => {
+    const renderer = event.sender;
+    const fileId = v7();
+    const stream = storage.readFile(path);
+    const reader = stream.getReader();
+
+    async function sendBytes() {
+      try {
+        let cancel = false;
+        let paused = false;
+
+        ipcMain.once(`${IPC_CHANNEL_READ_FILE}:${fileId}:cancel`, () => {
+          cancel = true;
+        });
+
+        ipcMain.on(`${IPC_CHANNEL_READ_FILE}:${fileId}:pause`, () => {
+          paused = true;
+        });
+
+        ipcMain.on(`${IPC_CHANNEL_READ_FILE}:${fileId}:resume`, () => {
+          paused = false;
+        });
+
+        for (
+          let { done, value } = await reader.read();
+          !done && !cancel && value;
+          { done, value } = await reader.read()
+        ) {
+          renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:data`, value);
+
+          if (paused) {
+            await new Promise((resolve) =>
+              ipcMain.once(`${IPC_CHANNEL_READ_FILE}:${fileId}:resume`, resolve),
+            );
+          }
+        }
+
+        if (!cancel) {
+          renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:end`);
+        } else {
+          void stream.cancel();
+        }
+      } catch (e) {
+        renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:error`, e);
+      }
+
+      cleanup();
+    }
+
+    function cleanup() {
+      ipcMain.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:cancel`);
+      ipcMain.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:pause`);
+      ipcMain.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:resume`);
+    }
+
+    ipcMain.once(`${IPC_CHANNEL_READ_FILE}:${fileId}:ready`, () => void sendBytes());
+    return fileId;
   });
 }

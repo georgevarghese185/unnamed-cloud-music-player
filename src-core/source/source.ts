@@ -4,9 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import type { Track } from '../library';
 import type { TrackImporter } from '../library/track-importer';
 
-export interface Source<K extends string, I> {
+export interface Source<K extends string, I, M> {
   name: K;
-  import(inputs: I): TrackImporter;
+  import(inputs: I): TrackImporter<K, M>;
+  stream(track: Track<K, M>): ReadableStream<Uint8Array>;
 }
