@@ -11,13 +11,14 @@ export type Identifier = {
   value: string;
 };
 
-export type Track<SourceMetadata = unknown> = {
+export type Track<K extends string = string, M = unknown> = {
   id: number;
   name: string;
+  mime: string;
   identifiers: Identifier[];
   source: {
-    name: string;
-    meta: SourceMetadata;
+    name: K;
+    meta: M;
   };
 };
 

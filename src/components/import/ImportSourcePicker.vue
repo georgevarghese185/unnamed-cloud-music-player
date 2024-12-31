@@ -34,7 +34,7 @@ const { getSource } = useLibrary();
 
 const model = defineModel<boolean>({ default: true });
 const emits = defineEmits<{
-  <K extends string, I>(e: 'pick', source: Source<K, I>, inputs: I): void;
+  <K extends string, I, M>(e: 'pick', source: Source<K, I, M>, inputs: I): void;
 }>();
 
 const deviceSource: DeviceSource | undefined = getSource(DEVICE_SOURCE_NAME);

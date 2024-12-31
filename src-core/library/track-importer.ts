@@ -10,9 +10,9 @@ import type TypedEmitter from 'typed-emitter';
 
 const QUEUE_MAX_SIZE = 100;
 
-export interface ImportQueue {
+export interface ImportQueue<K extends string, M> {
   end(): void;
-  push(track: Track | TrackImportError): Promise<void>;
+  push(track: Track<K, M> | TrackImportError): Promise<void>;
 }
 
 export class TrackImportError extends Error {
@@ -30,14 +30,14 @@ type ImportQueueEventEmitter = TypedEmitter<{
   end: () => void;
 }>;
 
-export class TrackImporter {
-  private queue: (Track | TrackImportError)[] = [];
+export class TrackImporter<K extends string, M = unknown> {
+  private queue: (Track<K, M> | TrackImportError)[] = [];
   private state: 'ready' | 'importing' | 'ended' = 'ready';
   private emitter = new EventEmitter() as ImportQueueEventEmitter;
 
-  constructor(private onStart: (queue: ImportQueue) => void) {}
+  constructor(private onStart: (queue: ImportQueue<K, M>) => void) {}
 
-  async next(): Promise<(Track | TrackImportError)[] | null> {
+  async next(): Promise<(Track<K, M> | TrackImportError)[] | null> {
     if (this.state === 'ready') {
       this.start();
     }
@@ -55,7 +55,7 @@ export class TrackImporter {
   }
 
   private start() {
-    const importQueue: ImportQueue = {
+    const importQueue: ImportQueue<K, M> = {
       push: (track) => this.push(track),
       end: () => this.end(),
     };
@@ -64,7 +64,7 @@ export class TrackImporter {
     this.onStart(importQueue);
   }
 
-  private async push(track: Track | TrackImportError): Promise<void> {
+  private async push(track: Track<K, M> | TrackImportError): Promise<void> {
     if (this.queueFull()) {
       await this.waitForQueueSpace();
       return this.push(track);
@@ -74,7 +74,7 @@ export class TrackImporter {
     this.emitter.emit('push');
   }
 
-  private pop(): (Track | TrackImportError)[] {
+  private pop(): (Track<K, M> | TrackImportError)[] {
     const tracks = this.queue.splice(0);
     this.emitter.emit('pop');
     return tracks;

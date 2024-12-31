@@ -14,4 +14,39 @@ export class ElectronDeviceStorage implements DeviceStorage {
   async getFile(path: string): Promise<DeviceFile> {
     return window.bridge.file.getFile(path);
   }
+
+  readFile(path: string): ReadableStream<Uint8Array> {
+    let cancel: (() => void) | null = null;
+    let pause: (() => void) | null = null;
+    let resume: (() => void) | null = null;
+
+    const stream = new ReadableStream<Uint8Array>({
+      type: 'bytes',
+      async start(controller) {
+        ({ cancel, pause, resume } = await window.bridge.file.readFile(path, {
+          onData(chunk) {
+            controller.enqueue(chunk);
+
+            if ((controller.desiredSize ?? Infinity) <= 0) {
+              pause?.();
+            }
+          },
+          onEnd() {
+            controller.close();
+          },
+          onError(e) {
+            controller.error(e);
+          },
+        }));
+      },
+      pull() {
+        resume?.();
+      },
+      cancel() {
+        cancel?.();
+      },
+    });
+
+    return stream;
+  }
 }

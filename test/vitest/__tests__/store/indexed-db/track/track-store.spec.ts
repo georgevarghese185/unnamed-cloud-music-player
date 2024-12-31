@@ -11,6 +11,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { deviceTrackExpectation } from '../../../expectation/track';
 import type { DeviceSourceMetadata } from 'app/src-core/source/device';
 import type { Track } from 'app/src-core/library';
+import { resolve } from 'path';
 
 describe('IndexedDB track store', () => {
   let db: LibraryDatabase;
@@ -22,7 +23,9 @@ describe('IndexedDB track store', () => {
   });
 
   it('should add tracks to database', async () => {
-    const songPaths = ['/folder/Song1.mp3', '/folder/Song2.mp3', '/folder/Song3.mp3'];
+    const songPaths = ['/folder/Song1.mp3', '/folder/Song2.mp3', '/folder/Song3.mp3'].map((p) =>
+      resolve(p),
+    );
     const tracks = createTracks(songPaths);
 
     await store.add(tracks);
@@ -35,12 +38,14 @@ describe('IndexedDB track store', () => {
   });
 
   it('should find tracks by identifiers', async () => {
-    const tracks = createTracks(['/folder/Song1.mp3', '/folder/Song2.mp3', '/folder/Song3.mp3']);
+    const tracks = createTracks(
+      ['/folder/Song1.mp3', '/folder/Song2.mp3', '/folder/Song3.mp3'].map((p) => resolve(p)),
+    );
 
     await store.add(tracks);
 
     // @ts-expect-error ignore undefined
-    const tracksToFind: Track<DeviceSourceMetadata>[] = [tracks[0], tracks[2]];
+    const tracksToFind: Track<'device', DeviceSourceMetadata>[] = [tracks[0], tracks[2]];
     const foundTracks = await store.findByIdentifiers([
       // @ts-expect-error ignore undefined
       tracksToFind[0].identifiers[0],
@@ -54,7 +59,7 @@ describe('IndexedDB track store', () => {
   });
 
   it('should list all tracks with limit and offset', async () => {
-    const tracks = createTracks(range(10).map((i) => `/folder/Song${i + 1}`));
+    const tracks = createTracks(range(10).map((i) => resolve(`/folder/Song${i + 1}`)));
 
     await store.add(tracks);
 

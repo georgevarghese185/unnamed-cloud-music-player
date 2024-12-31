@@ -14,6 +14,7 @@ import { TrackImportError } from './track-importer';
 import type { Source } from '../source';
 import type { ImportJob } from './import-job';
 import { ImportJobImpl } from './import-job';
+import { getErrorMessage } from '../error/util';
 
 export class UnsupportedSourceError extends Error {
   constructor(sourceName: string) {
@@ -26,31 +27,50 @@ export type LibraryOptions = {
   store: {
     tracks: TrackStore;
   };
-  sources: Source<string, unknown>[];
+  sources: Source<string, unknown, unknown>[];
 };
 
 export class Library {
-  readonly player: Player;
   readonly tracks: TrackStore;
 
   constructor(private options: LibraryOptions) {
-    this.player = options.player;
     this.tracks = options.store.tracks;
   }
 
-  getSource<K extends string, I, S extends Source<K, I>>(sourceName: K): S | undefined {
+  getSource<K extends string, I, M, S extends Source<K, I, M>>(sourceName: K): S | undefined {
     const source = this.options.sources.find((s): s is S => s.name === sourceName);
     return source;
   }
 
-  import<K extends string, I, S extends Source<K, I>>(source: S, inputs: I): ImportJob {
+  import<K extends string, I, M, S extends Source<K, I, M>>(source: S, inputs: I): ImportJob {
     const importer = source.import(inputs);
     const job = new ImportJobImpl();
-    setTimeout(() => this.startImport(importer, job));
+    setTimeout(() => {
+      this.startImport(importer, job).catch((e) => {
+        job.onImportError([
+          new TrackImportError(`Import interrupted unexpectedly: ${getErrorMessage(e)}`, ''),
+        ]);
+        job.onComplete();
+      });
+    });
     return job;
   }
 
-  private async startImport(importer: TrackImporter, job: ImportJobImpl) {
+  play(track: Track) {
+    const source = this.getSource(track.source.name);
+
+    if (!source) {
+      throw new UnsupportedSourceError(track.source.name);
+    }
+
+    const stream = source.stream(track);
+    this.options.player.play(track, stream);
+  }
+
+  private async startImport<K extends string, M>(
+    importer: TrackImporter<K, M>,
+    job: ImportJobImpl,
+  ) {
     let imports: (Track | TrackImportError)[] | null;
     const trackStore = this.options.store.tracks;
 

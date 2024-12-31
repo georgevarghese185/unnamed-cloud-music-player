@@ -13,6 +13,9 @@ import { TrackImportError } from '../library/track-importer';
 import type { Player } from '../player';
 import type { DeviceFile, DeviceStorage, File } from '../storage/device';
 import type { Source } from './source';
+import { Mime } from 'mime';
+import standardMimeTypes from 'mime/types/standard.js';
+import otherMimeTypes from 'mime/types/other.js';
 
 /**
  *
@@ -20,25 +23,18 @@ import type { Source } from './source';
  *
  */
 
-export const DEVICE_SOURCE_NAME = 'device' as const;
+// override this library's audio/x-flac with audio/flac
+const mime = new Mime(standardMimeTypes, otherMimeTypes);
+mime.define({ 'audio/flac': ['flac'] }, true);
 
-const createTrack = (file: File): Track<DeviceSourceMetadata> => {
-  return {
-    id: 0,
-    name: file.name,
-    identifiers: [
-      {
-        name: IDENTIFIER_FILE_PATH,
-        value: file.path,
-      },
-    ],
-    source: { name: DEVICE_SOURCE_NAME, meta: { filePath: file.path } },
-  };
+export type DeviceSourceName = 'device';
+export const DEVICE_SOURCE_NAME: DeviceSourceName = 'device';
+export const IDENTIFIER_FILE_PATH = 'file_path';
+export type DeviceSourceMetadata = {
+  filePath: string;
 };
 
-export const IDENTIFIER_FILE_PATH = 'file_path';
-
-export class DeviceSource implements Source<'device', string[]> {
+export class DeviceSource implements Source<'device', string[], DeviceSourceMetadata> {
   name = DEVICE_SOURCE_NAME;
 
   constructor(
@@ -46,11 +42,27 @@ export class DeviceSource implements Source<'device', string[]> {
     private player: Player,
   ) {}
 
-  import(paths: string[]): TrackImporter {
-    return new TrackImporter(async (queue) => this.importFromPaths(paths, queue));
+  import(paths: string[]): TrackImporter<'device', DeviceSourceMetadata> {
+    return new TrackImporter((queue) => {
+      this.importFromPaths(paths, queue).catch((e) => {
+        void queue.push(
+          new TrackImportError(
+            `Unexpected error while importing tracks from paths ${paths.join(',')}: ${getErrorMessage(e)}`,
+            '',
+          ),
+        );
+      });
+    });
   }
 
-  private async importFromPaths(sourcePaths: string[], queue: ImportQueue) {
+  stream(track: Track<'device', DeviceSourceMetadata>): ReadableStream<Uint8Array> {
+    return this.storage.readFile(track.source.meta.filePath);
+  }
+
+  private async importFromPaths(
+    sourcePaths: string[],
+    queue: ImportQueue<'device', DeviceSourceMetadata>,
+  ) {
     let files = await this.getFiles(sourcePaths, queue);
     let file;
 
@@ -62,11 +74,14 @@ export class DeviceSource implements Source<'device', string[]> {
         } catch (e) {
           await queue.push(new TrackImportError(getErrorMessage(e), file.path));
         }
-      } else if (this.player.supports(file.ext)) {
-        await queue.push(createTrack(file));
-      } else if (sourcePaths.includes(file.path)) {
-        // the selected source file is not a supported audio file. Notify the user
-        await queue.push(new TrackImportError(UNSUPPORTED_FILE, file.path));
+      } else {
+        const mimeType = mime.getType(file.ext) || '';
+        if (this.player.supports(mimeType)) {
+          await queue.push(createTrack(file, mimeType));
+        } else if (sourcePaths.includes(file.path)) {
+          // the selected source file is not a supported audio file. Notify the user
+          await queue.push(new TrackImportError(UNSUPPORTED_FILE, file.path));
+        }
       }
     }
 
@@ -77,7 +92,10 @@ export class DeviceSource implements Source<'device', string[]> {
    * Gets `DeviceFile`s for the given device storage paths. Any errors that occur while trying to get a file will be
    * be pushed to the queue as `TrackImportError`s
    */
-  private async getFiles(paths: string[], queue: ImportQueue): Promise<DeviceFile[]> {
+  private async getFiles(
+    paths: string[],
+    queue: ImportQueue<'device', DeviceSourceMetadata>,
+  ): Promise<DeviceFile[]> {
     const files: DeviceFile[] = [];
 
     await Promise.all(
@@ -95,6 +113,17 @@ export class DeviceSource implements Source<'device', string[]> {
   }
 }
 
-export type DeviceSourceMetadata = {
-  filePath: string;
+const createTrack = (file: File, mimeType: string): Track<'device', DeviceSourceMetadata> => {
+  return {
+    id: 0,
+    name: file.name,
+    mime: mimeType,
+    identifiers: [
+      {
+        name: IDENTIFIER_FILE_PATH,
+        value: file.path,
+      },
+    ],
+    source: { name: DEVICE_SOURCE_NAME, meta: { filePath: file.path } },
+  };
 };
