@@ -36,9 +36,11 @@ export class Player {
       this.events.emit('play');
     });
     audioPlayer.on('paused', () => {
+      this.state = 'paused';
       this.events.emit('pause');
     });
     audioPlayer.on('stopped', () => {
+      this.state = 'paused';
       this.events.emit('pause');
     });
   }
@@ -53,6 +55,10 @@ export class Player {
     const stream = source.stream(track);
     this.currentlyPlaying = track;
     this.audioPlayer.play({ mimeType: track.mime, stream });
+  }
+
+  pause() {
+    this.audioPlayer.pause();
   }
 
   on<E extends keyof PlayerEvents>(event: E, handler: PlayerEvents[E]) {

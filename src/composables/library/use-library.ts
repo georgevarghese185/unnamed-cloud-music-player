@@ -23,6 +23,7 @@ export default function useLibrary() {
   const importErrors = inject(importErrorsInjectionKey, ref([]));
 
   const currentlyPlaying = ref(library.value.player.currentlyPlaying);
+  const playerState = ref(library.value.player.state);
 
   const tracks = shallowRef<Track[]>([]);
 
@@ -46,6 +47,7 @@ export default function useLibrary() {
 
   function onPlay() {
     currentlyPlaying.value = library.value.player.currentlyPlaying;
+    playerState.value = library.value.player.state;
   }
 
   onMounted(() => {
@@ -93,6 +95,8 @@ export default function useLibrary() {
     },
     player: {
       play: library.value.player.play.bind(library.value.player),
+      pause: library.value.player.pause.bind(library.value.player),
+      state: playerState,
       currentlyPlaying,
     },
   };

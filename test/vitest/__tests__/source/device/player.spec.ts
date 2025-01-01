@@ -10,7 +10,7 @@ import { fail } from 'assert';
 import { hashFile, hashUint8Array } from '../../util/hash';
 import type { Audio } from 'app/src-core/audio-player';
 
-describe('Play from device source', () => {
+describe('Player + device source', () => {
   it('should play a single track', async () => {
     const { deviceSource, library, audioPlayer } = createDeviceLibraryFixture(nodeFs);
     const filePath = resolve(
@@ -44,7 +44,7 @@ describe('Play from device source', () => {
             chunks = chunks.concat(value);
           }
 
-          audioPlayer.emit('playing', track);
+          audioPlayer.emit('playing');
 
           resolve([audio, chunks]);
         }
@@ -65,5 +65,43 @@ describe('Play from device source', () => {
     expect(library.player.state).toEqual('playing');
   });
 
-  it('should');
+  it('should pause track', async () => {
+    const { deviceSource, library, audioPlayer } = createDeviceLibraryFixture(nodeFs);
+    const filePath = resolve(
+      'test/fixtures/music/Kevin MacLeod - I Got a Stick Arr Bryan Teoh.mp3',
+    );
+    const onPause = vi.fn();
+    library.player.on('pause', onPause);
+
+    const job = library.import(deviceSource, [filePath]);
+    await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
+    const [track] = await library.tracks.list({ limit: 1, offset: 0 });
+
+    if (!track) {
+      fail('Track not found');
+    }
+
+    await new Promise<void>((resolve) => {
+      vi.spyOn(audioPlayer, 'play').mockImplementationOnce(() => {
+        audioPlayer.emit('started');
+        audioPlayer.emit('buffering');
+        audioPlayer.emit('playing');
+        resolve();
+      });
+
+      library.player.play(track);
+    });
+
+    await new Promise<void>((resolve) => {
+      vi.spyOn(audioPlayer, 'pause').mockImplementationOnce(() => {
+        audioPlayer.emit('paused');
+        resolve();
+      });
+
+      library.player.pause();
+    });
+
+    expect(onPause).toHaveBeenCalled();
+    expect(library.player.state).toEqual('paused');
+  });
 });
