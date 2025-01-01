@@ -4,9 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import type { Track } from 'app/src-core/library';
-import type { AudioPlayer } from 'app/src-core/audio-player';
-import { PlaybackError, type PlayerEvents } from 'app/src-core/audio-player/audio-player';
+import type { Audio, AudioPlayer } from 'app/src-core/audio-player';
+import { PlaybackError, type AudioPlayerEvents } from 'app/src-core/audio-player';
 import EventEmitter from 'events';
 import type TypedEventEmitter from 'typed-emitter';
 
@@ -21,8 +20,7 @@ class MediaSourceUnsupportedError extends Error {
 
 export default class HtmlAudioPlayer implements AudioPlayer {
   private audio: HTMLAudioElement;
-  private events = new EventEmitter() as TypedEventEmitter<PlayerEvents>;
-  currentlyPlaying: Track | null = null;
+  private events = new EventEmitter() as TypedEventEmitter<AudioPlayerEvents>;
 
   constructor() {
     let audioElement: HTMLAudioElement | null = document.querySelector(`#${AUDIO_ELEMENT_ID}`);
@@ -40,55 +38,41 @@ export default class HtmlAudioPlayer implements AudioPlayer {
     });
 
     this.audio.addEventListener('play', () => {
-      if (!this.currentlyPlaying) {
-        return;
-      }
-
-      this.events.emit('playing', this.currentlyPlaying);
+      this.events.emit('playing');
     });
 
     this.audio.addEventListener('playing', () => {
-      if (!this.currentlyPlaying) {
-        return;
-      }
-
-      this.events.emit('playing', this.currentlyPlaying);
+      this.events.emit('playing');
     });
 
     this.audio.addEventListener('pause', () => {
-      if (!this.currentlyPlaying) {
-        return;
-      }
-
-      this.events.emit('paused', this.currentlyPlaying);
+      this.events.emit('paused');
     });
 
     this.audio.addEventListener('waiting', () => {
-      if (!this.currentlyPlaying) {
-        return;
-      }
-
-      this.events.emit('buffering', this.currentlyPlaying);
+      this.events.emit('buffering');
     });
 
     this.audio.addEventListener('ended', () => {
-      if (!this.currentlyPlaying) {
-        return;
-      }
-
-      this.events.emit('stopped', this.currentlyPlaying);
+      this.events.emit('stopped');
     });
   }
 
-  on<Event extends keyof PlayerEvents>(event: Event, handler: PlayerEvents[Event]): void {
+  on<Event extends keyof AudioPlayerEvents>(event: Event, handler: AudioPlayerEvents[Event]): void {
     this.events.on(event, handler);
   }
 
-  once<Event extends keyof PlayerEvents>(event: Event, handler: PlayerEvents[Event]): void {
+  once<Event extends keyof AudioPlayerEvents>(
+    event: Event,
+    handler: AudioPlayerEvents[Event],
+  ): void {
     this.events.once(event, handler);
   }
 
-  off<Event extends keyof PlayerEvents>(event: Event, handler: PlayerEvents[Event]): void {
+  off<Event extends keyof AudioPlayerEvents>(
+    event: Event,
+    handler: AudioPlayerEvents[Event],
+  ): void {
     this.events.off(event, handler);
   }
 
@@ -96,15 +80,14 @@ export default class HtmlAudioPlayer implements AudioPlayer {
     return !!this.audio.canPlayType(mimeType);
   }
 
-  play(track: Track, stream: ReadableStream<Uint8Array>): void {
+  play(audio: Audio): void {
     const play = async () => {
       try {
-        this.currentlyPlaying = track;
-        this.events.emit('started', track);
-        await this.playAsMediaSource(track, stream);
+        this.events.emit('started');
+        await this.playAsMediaSource(audio);
       } catch (e) {
         if (e instanceof MediaSourceUnsupportedError) {
-          await this.playAsBlob(track, stream, e.buffered);
+          await this.playAsBlob(audio, e.buffered);
         } else {
           throw e;
         }
@@ -114,7 +97,11 @@ export default class HtmlAudioPlayer implements AudioPlayer {
     play().catch((e) => this.events.emit('error', new PlaybackError(e.message)));
   }
 
-  private async playAsMediaSource(track: Track, stream: ReadableStream<Uint8Array>) {
+  pause(): void {
+    this.audio.pause();
+  }
+
+  private async playAsMediaSource(audio: Audio) {
     const unplayedChunks: Uint8Array[] = [];
 
     try {
@@ -151,8 +138,8 @@ export default class HtmlAudioPlayer implements AudioPlayer {
         .then(() => (playing = true))
         .catch(() => {});
 
-      const sourceBuffer = mediaSource.addSourceBuffer(track.mime);
-      const reader = stream.getReader();
+      const sourceBuffer = mediaSource.addSourceBuffer(audio.mimeType);
+      const reader = audio.stream.getReader();
 
       for (
         let { done, value } = await reader.read();
@@ -185,8 +172,8 @@ export default class HtmlAudioPlayer implements AudioPlayer {
     }
   }
 
-  private async playAsBlob(track: Track, stream: ReadableStream, buffered: Uint8Array[] = []) {
-    const reader = stream.getReader();
+  private async playAsBlob(audio: Audio, buffered: Uint8Array[] = []) {
+    const reader = audio.stream.getReader();
 
     for (
       let { done, value } = await reader.read();

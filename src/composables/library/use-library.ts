@@ -44,8 +44,8 @@ export default function useLibrary() {
     job.on('complete', onImportComplete);
   }
 
-  function onCurrentlyPlayingChange(track: Track) {
-    currentlyPlaying.value = track;
+  function onPlay() {
+    currentlyPlaying.value = library.value.player.currentlyPlaying;
   }
 
   onMounted(() => {
@@ -53,14 +53,14 @@ export default function useLibrary() {
       onImport(importJob.value);
     }
 
-    library.value.player.on('start', onCurrentlyPlayingChange);
+    library.value.player.on('play', onPlay);
   });
 
   onUnmounted(() => {
     importJob.value?.off('import', onImportProgress);
     importJob.value?.off('importError', onImportErrors);
     importJob.value?.off('complete', onImportComplete);
-    library.value.player.off('start', onCurrentlyPlayingChange);
+    library.value.player.off('play', onPlay);
   });
 
   function startImport<K extends string, I, M>(source: Source<K, I, M>, inputs: I) {

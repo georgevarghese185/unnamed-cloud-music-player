@@ -8,6 +8,7 @@ import { resolve } from 'path';
 import * as nodeFs from 'fs';
 import { fail } from 'assert';
 import { hashFile, hashUint8Array } from '../../util/hash';
+import type { Audio } from 'app/src-core/audio-player';
 
 describe('Play from device source', () => {
   it('should play a single track', async () => {
@@ -15,6 +16,8 @@ describe('Play from device source', () => {
     const filePath = resolve(
       'test/fixtures/music/Kevin MacLeod - I Got a Stick Arr Bryan Teoh.mp3',
     );
+    const onPlay = vi.fn();
+    library.player.on('play', onPlay);
 
     const job = library.import(deviceSource, [filePath]);
     await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
@@ -24,30 +27,26 @@ describe('Play from device source', () => {
       fail('Track not found');
     }
 
-    await new Promise<void>((resolve, reject) => {
-      vi.spyOn(audioPlayer, 'play').mockImplementationOnce((_track, stream) => {
+    const [audio, trackChunks] = await new Promise<[Audio, Uint8Array[]]>((resolve, reject) => {
+      vi.spyOn(audioPlayer, 'play').mockImplementationOnce((audio) => {
         async function validateStream() {
-          expect(_track).toEqual(track);
+          audioPlayer.emit('started');
+          audioPlayer.emit('buffering');
 
-          const reader = stream.getReader();
-          let isDone = true;
+          const reader = audio.stream.getReader();
           let chunks: Uint8Array[] = [];
 
-          do {
-            const { done, value } = await reader.read();
-            isDone = done;
+          for (
+            let { done, value } = await reader.read();
+            !done && value;
+            { done, value } = await reader.read()
+          ) {
+            chunks = chunks.concat(value);
+          }
 
-            if (value) {
-              chunks = chunks.concat(value);
-            }
-          } while (!isDone);
+          audioPlayer.emit('playing', track);
 
-          const fileHash = hashFile(filePath);
-          const chunksHash = hashUint8Array(chunks);
-
-          expect(chunksHash).toEqual(fileHash);
-
-          resolve();
+          resolve([audio, chunks]);
         }
 
         validateStream().catch(reject);
@@ -55,5 +54,16 @@ describe('Play from device source', () => {
 
       library.player.play(track);
     });
+
+    const fileHash = hashFile(filePath);
+    const chunksHash = hashUint8Array(trackChunks);
+
+    expect(audio).toEqual({ mimeType: 'audio/mpeg', stream: expect.any(ReadableStream) });
+    expect(chunksHash).toEqual(fileHash);
+    expect(onPlay).toHaveBeenCalled();
+    expect(library.player.currentlyPlaying).toEqual(track);
+    expect(library.player.state).toEqual('playing');
   });
+
+  it('should');
 });

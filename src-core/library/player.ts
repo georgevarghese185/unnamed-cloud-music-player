@@ -12,23 +12,35 @@ import type { Track } from './track';
 import type TypedEventEmitter from 'typed-emitter';
 
 export type PlayerEvents = {
-  start: (track: Track) => void;
+  play: () => void;
+  pause: () => void;
 };
 
+export type PlayerState = 'playing' | 'paused';
+
 export class Player {
+  state: PlayerState = 'paused';
+  currentlyPlaying: Track | null = null;
   private events = new EventEmitter() as TypedEventEmitter<PlayerEvents>;
 
   constructor(
     private readonly sources: Source<string, unknown, unknown>[],
     private readonly audioPlayer: AudioPlayer,
   ) {
-    audioPlayer.on('started', (track) => {
-      this.events.emit('start', track);
+    audioPlayer.on('started', () => {
+      this.state = 'playing';
+      this.events.emit('play');
     });
-  }
-
-  get currentlyPlaying() {
-    return this.audioPlayer.currentlyPlaying;
+    audioPlayer.on('playing', () => {
+      this.state = 'playing';
+      this.events.emit('play');
+    });
+    audioPlayer.on('paused', () => {
+      this.events.emit('pause');
+    });
+    audioPlayer.on('stopped', () => {
+      this.events.emit('pause');
+    });
   }
 
   play(track: Track) {
@@ -39,7 +51,8 @@ export class Player {
     }
 
     const stream = source.stream(track);
-    this.audioPlayer.play(track, stream);
+    this.currentlyPlaying = track;
+    this.audioPlayer.play({ mimeType: track.mime, stream });
   }
 
   on<E extends keyof PlayerEvents>(event: E, handler: PlayerEvents[E]) {
