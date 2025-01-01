@@ -7,5 +7,7 @@
 </template>
 
 <script setup lang="ts">
-//
+import { useLibraryProvider } from 'src/composables/library';
+
+useLibraryProvider();
 </script>

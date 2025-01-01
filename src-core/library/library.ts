@@ -5,7 +5,7 @@
  */
 
 import { differenceWith } from 'lodash';
-import type { Player } from '../player';
+import type { AudioPlayer } from '../audio-player';
 import type { TrackStore } from './store/track';
 import type { Track } from './track';
 import { eqIdentifiers, getIdentifiers } from './track';
@@ -15,15 +15,10 @@ import type { Source } from '../source';
 import type { ImportJob } from './import-job';
 import { ImportJobImpl } from './import-job';
 import { getErrorMessage } from '../error/util';
-
-export class UnsupportedSourceError extends Error {
-  constructor(sourceName: string) {
-    super(`Source '${sourceName}' is not supported`);
-  }
-}
+import { Player } from './player';
 
 export type LibraryOptions = {
-  player: Player;
+  audioPlayer: AudioPlayer;
   store: {
     tracks: TrackStore;
   };
@@ -32,9 +27,11 @@ export type LibraryOptions = {
 
 export class Library {
   readonly tracks: TrackStore;
+  readonly player: Player;
 
   constructor(private options: LibraryOptions) {
     this.tracks = options.store.tracks;
+    this.player = new Player(options.sources, options.audioPlayer);
   }
 
   getSource<K extends string, I, M, S extends Source<K, I, M>>(sourceName: K): S | undefined {
@@ -54,17 +51,6 @@ export class Library {
       });
     });
     return job;
-  }
-
-  play(track: Track) {
-    const source = this.getSource(track.source.name);
-
-    if (!source) {
-      throw new UnsupportedSourceError(track.source.name);
-    }
-
-    const stream = source.stream(track);
-    this.options.player.play(track, stream);
   }
 
   private async startImport<K extends string, M>(

@@ -8,6 +8,10 @@
 
     <main class="column no-wrap" style="padding-top: 0; flex: 1 1 auto; overflow: hidden">
       <router-view />
+
+      <q-card v-if="currentlyPlaying" class="absolute-bottom q-mx-lg">
+        <q-card-section> {{ currentlyPlaying.name }} </q-card-section>
+      </q-card>
     </main>
   </div>
 </template>
@@ -16,8 +20,12 @@
 import NavHeader from 'src/components/NavHeader.vue';
 import type { NavLink } from 'src/components/nav-header-models';
 import { useI18n } from 'vue-i18n';
+import useLibrary from 'src/composables/library/use-library';
 
 const { t } = useI18n();
+const library = useLibrary();
+
+const currentlyPlaying = library.player.currentlyPlaying;
 
 const links: NavLink[] = [
   {

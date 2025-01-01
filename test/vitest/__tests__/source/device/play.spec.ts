@@ -11,7 +11,7 @@ import { hashFile, hashUint8Array } from '../../util/hash';
 
 describe('Play from device source', () => {
   it('should play a single track', async () => {
-    const { deviceSource, library, player } = createDeviceLibraryFixture(nodeFs);
+    const { deviceSource, library, audioPlayer } = createDeviceLibraryFixture(nodeFs);
     const filePath = resolve(
       'test/fixtures/music/Kevin MacLeod - I Got a Stick Arr Bryan Teoh.mp3',
     );
@@ -25,7 +25,7 @@ describe('Play from device source', () => {
     }
 
     await new Promise<void>((resolve, reject) => {
-      vi.spyOn(player, 'play').mockImplementationOnce((_track, stream) => {
+      vi.spyOn(audioPlayer, 'play').mockImplementationOnce((_track, stream) => {
         async function validateStream() {
           expect(_track).toEqual(track);
 
@@ -53,7 +53,7 @@ describe('Play from device source', () => {
         validateStream().catch(reject);
       });
 
-      library.play(track);
+      library.player.play(track);
     });
   });
 });

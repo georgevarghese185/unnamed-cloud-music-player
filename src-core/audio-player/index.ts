@@ -4,4 +4,4 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-export type { Player } from './player';
+export type { AudioPlayer } from './audio-player';
