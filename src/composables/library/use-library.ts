@@ -22,7 +22,7 @@ export default function useLibrary() {
   const importProgress = inject(importProgressInjectionKey, ref(null));
   const importErrors = inject(importErrorsInjectionKey, ref([]));
 
-  const currentlyPlaying = ref(library.value.currentlyPlaying);
+  const currentlyPlaying = ref(library.value.player.currentlyPlaying);
 
   const tracks = shallowRef<Track[]>([]);
 
@@ -53,14 +53,14 @@ export default function useLibrary() {
       onImport(importJob.value);
     }
 
-    library.value.on('trackStart', onCurrentlyPlayingChange);
+    library.value.player.on('start', onCurrentlyPlayingChange);
   });
 
   onUnmounted(() => {
     importJob.value?.off('import', onImportProgress);
     importJob.value?.off('importError', onImportErrors);
     importJob.value?.off('complete', onImportComplete);
-    library.value.off('trackStart', onCurrentlyPlayingChange);
+    library.value.player.off('start', onCurrentlyPlayingChange);
   });
 
   function startImport<K extends string, I, M>(source: Source<K, I, M>, inputs: I) {
@@ -91,7 +91,9 @@ export default function useLibrary() {
       list: tracks,
       find: findTracks,
     },
-    play: library.value.play.bind(library.value),
-    currentlyPlaying,
+    player: {
+      play: library.value.player.play.bind(library.value.player),
+      currentlyPlaying,
+    },
   };
 }

@@ -53,7 +53,7 @@ describe('Play from device source', () => {
         validateStream().catch(reject);
       });
 
-      library.play(track);
+      library.player.play(track);
     });
   });
 });

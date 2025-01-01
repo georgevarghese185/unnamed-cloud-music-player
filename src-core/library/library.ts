@@ -15,14 +15,7 @@ import type { Source } from '../source';
 import type { ImportJob } from './import-job';
 import { ImportJobImpl } from './import-job';
 import { getErrorMessage } from '../error/util';
-import type TypedEventEmitter from 'typed-emitter';
-import EventEmitter from 'events';
-
-export class UnsupportedSourceError extends Error {
-  constructor(sourceName: string) {
-    super(`Source '${sourceName}' is not supported`);
-  }
-}
+import { Player } from './player';
 
 export type LibraryOptions = {
   audioPlayer: AudioPlayer;
@@ -32,19 +25,13 @@ export type LibraryOptions = {
   sources: Source<string, unknown, unknown>[];
 };
 
-export type LibraryEvents = {
-  trackStart: (track: Track) => void;
-};
-
 export class Library {
-  private events = new EventEmitter() as TypedEventEmitter<LibraryEvents>;
   readonly tracks: TrackStore;
+  readonly player: Player;
 
   constructor(private options: LibraryOptions) {
     this.tracks = options.store.tracks;
-    this.options.audioPlayer.on('started', (track) => {
-      this.events.emit('trackStart', track);
-    });
+    this.player = new Player(options.sources, options.audioPlayer);
   }
 
   getSource<K extends string, I, M, S extends Source<K, I, M>>(sourceName: K): S | undefined {
@@ -64,29 +51,6 @@ export class Library {
       });
     });
     return job;
-  }
-
-  play(track: Track) {
-    const source = this.getSource(track.source.name);
-
-    if (!source) {
-      throw new UnsupportedSourceError(track.source.name);
-    }
-
-    const stream = source.stream(track);
-    this.options.audioPlayer.play(track, stream);
-  }
-
-  get currentlyPlaying() {
-    return this.options.audioPlayer.currentlyPlaying;
-  }
-
-  on<E extends keyof LibraryEvents>(event: E, handler: LibraryEvents[E]) {
-    this.events.on(event, handler);
-  }
-
-  off<E extends keyof LibraryEvents>(event: E, handler: LibraryEvents[E]) {
-    this.events.off(event, handler);
   }
 
   private async startImport<K extends string, M>(

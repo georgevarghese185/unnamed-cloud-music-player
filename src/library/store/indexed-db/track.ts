@@ -8,7 +8,7 @@ import type { Track } from 'app/src-core/library';
 import type { ListOptions, TrackStore } from 'app/src-core/library/store/track';
 import { compact, flatMap, omit } from 'lodash';
 import type { LibraryDatabase } from './db';
-import type { Identifier } from 'app/src-core/library/track';
+import type { Identifier } from 'app/src-core/library';
 
 export class IndexedDbTrackStore implements TrackStore {
   constructor(protected db: LibraryDatabase) {}

@@ -25,7 +25,7 @@ import useLibrary from 'src/composables/library/use-library';
 const { t } = useI18n();
 const library = useLibrary();
 
-const currentlyPlaying = library.currentlyPlaying;
+const currentlyPlaying = library.player.currentlyPlaying;
 
 const links: NavLink[] = [
   {
