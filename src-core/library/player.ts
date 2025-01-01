@@ -61,6 +61,10 @@ export class Player {
     this.audioPlayer.pause();
   }
 
+  resume() {
+    this.audioPlayer.resume();
+  }
+
   on<E extends keyof PlayerEvents>(event: E, handler: PlayerEvents[E]) {
     this.events.on(event, handler);
   }

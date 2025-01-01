@@ -25,6 +25,10 @@ const currentlyPlaying = library.player.currentlyPlaying;
 const playerState = library.player.state;
 
 function togglePlayState() {
-  library.player.pause();
+  if (library.player.state.value === 'playing') {
+    library.player.pause();
+  } else {
+    library.player.resume();
+  }
 }
 </script>

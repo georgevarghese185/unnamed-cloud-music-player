@@ -101,6 +101,11 @@ export default class HtmlAudioPlayer implements AudioPlayer {
     this.audio.pause();
   }
 
+  resume(): void {
+    this.events.emit('buffering');
+    void this.audio.play();
+  }
+
   private async playAsMediaSource(audio: Audio) {
     const unplayedChunks: Uint8Array[] = [];
 

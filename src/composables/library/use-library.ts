@@ -45,7 +45,7 @@ export default function useLibrary() {
     job.on('complete', onImportComplete);
   }
 
-  function onPlay() {
+  function onPlayerStateChange() {
     currentlyPlaying.value = library.value.player.currentlyPlaying;
     playerState.value = library.value.player.state;
   }
@@ -55,14 +55,16 @@ export default function useLibrary() {
       onImport(importJob.value);
     }
 
-    library.value.player.on('play', onPlay);
+    library.value.player.on('play', onPlayerStateChange);
+    library.value.player.on('pause', onPlayerStateChange);
   });
 
   onUnmounted(() => {
     importJob.value?.off('import', onImportProgress);
     importJob.value?.off('importError', onImportErrors);
     importJob.value?.off('complete', onImportComplete);
-    library.value.player.off('play', onPlay);
+    library.value.player.off('play', onPlayerStateChange);
+    library.value.player.off('pause', onPlayerStateChange);
   });
 
   function startImport<K extends string, I, M>(source: Source<K, I, M>, inputs: I) {
@@ -96,6 +98,7 @@ export default function useLibrary() {
     player: {
       play: library.value.player.play.bind(library.value.player),
       pause: library.value.player.pause.bind(library.value.player),
+      resume: library.value.player.resume.bind(library.value.player),
       state: playerState,
       currentlyPlaying,
     },

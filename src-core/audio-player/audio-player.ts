@@ -28,6 +28,7 @@ export interface AudioPlayer {
   supports(mimeType: string): boolean;
   play(audio: Audio): void;
   pause(): void;
+  resume(): void;
   on<Event extends keyof AudioPlayerEvents>(event: Event, handler: AudioPlayerEvents[Event]): void;
   once<Event extends keyof AudioPlayerEvents>(
     event: Event,

@@ -65,12 +65,14 @@ describe('Player + device source', () => {
     expect(library.player.state).toEqual('playing');
   });
 
-  it('should pause track', async () => {
+  it('should pause and resume track', async () => {
     const { deviceSource, library, audioPlayer } = createDeviceLibraryFixture(nodeFs);
     const filePath = resolve(
       'test/fixtures/music/Kevin MacLeod - I Got a Stick Arr Bryan Teoh.mp3',
     );
+    const onPlay = vi.fn();
     const onPause = vi.fn();
+    library.player.on('play', onPlay);
     library.player.on('pause', onPause);
 
     const job = library.import(deviceSource, [filePath]);
@@ -103,5 +105,19 @@ describe('Player + device source', () => {
 
     expect(onPause).toHaveBeenCalled();
     expect(library.player.state).toEqual('paused');
+
+    onPlay.mockReset();
+
+    await new Promise<void>((resolve) => {
+      vi.spyOn(audioPlayer, 'resume').mockImplementationOnce(() => {
+        audioPlayer.emit('playing');
+        resolve();
+      });
+
+      library.player.resume();
+    });
+
+    expect(onPlay).toHaveBeenCalled();
+    expect(library.player.state).toEqual('playing');
   });
 });

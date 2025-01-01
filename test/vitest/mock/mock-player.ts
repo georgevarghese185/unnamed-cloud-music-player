@@ -17,4 +17,7 @@ export class MockAudioPlayer extends EventEmitter implements AudioPlayer {
   pause(): void {
     throw new Error('Method not implemented.');
   }
+  resume(): void {
+    throw new Error('Method not implemented.');
+  }
 }

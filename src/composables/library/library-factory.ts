@@ -11,7 +11,7 @@ import { ElectronDeviceStorage } from 'app/src-electron/storage/device/electron-
 import { useQuasar } from 'quasar';
 import { LibraryDatabase } from 'src/library/store/indexed-db/db';
 import { IndexedDbTrackStore } from 'src/library/store/indexed-db/track';
-import HtmlAudioPlayer from 'src/audio-player/html-audio-player';
+import HtmlAudioPlayer from 'src/audio-player';
 
 export default function createLibrary() {
   const $q = useQuasar();
