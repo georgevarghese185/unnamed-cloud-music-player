@@ -2,25 +2,22 @@
  * https://creativecommons.org/publicdomain/zero/1.0/ */
 
 import type { Track } from 'app/src-core/library';
-import type { AudioPlayer } from 'app/src-core/audio-player';
-import type { PlayerEvents } from 'app/src-core/audio-player/audio-player';
+import type { Audio, AudioPlayer } from 'app/src-core/audio-player';
+import EventEmitter from 'events';
 
-export class MockAudioPlayer implements AudioPlayer {
-  currentlyPlaying: Track | null = null;
+export class MockAudioPlayer extends EventEmitter implements AudioPlayer {
+  track: Track | null = null;
 
-  on<Event extends keyof PlayerEvents>(_event: Event, _handler: PlayerEvents[Event]): void {
-    // do nothing
-  }
-  once<Event extends keyof PlayerEvents>(_event: Event, _handler: PlayerEvents[Event]): void {
-    throw new Error('Method not implemented.');
-  }
-  off<Event extends keyof PlayerEvents>(_event: Event, _handler: PlayerEvents[Event]): void {
-    throw new Error('Method not implemented.');
-  }
   supports(ext: string) {
     return ['audio/mpeg', 'audio/ogg', 'audio/aac', 'audio/flac'].includes(ext);
   }
-  play(_track: Track, _stream: ReadableStream<Uint8Array>): void {
+  play(_audio: Audio): void {
+    throw new Error('Method not implemented.');
+  }
+  pause(): void {
+    throw new Error('Method not implemented.');
+  }
+  resume(): void {
     throw new Error('Method not implemented.');
   }
 }
