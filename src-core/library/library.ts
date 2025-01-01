@@ -15,6 +15,8 @@ import type { Source } from '../source';
 import type { ImportJob } from './import-job';
 import { ImportJobImpl } from './import-job';
 import { getErrorMessage } from '../error/util';
+import type TypedEventEmitter from 'typed-emitter';
+import EventEmitter from 'events';
 
 export class UnsupportedSourceError extends Error {
   constructor(sourceName: string) {
@@ -30,11 +32,19 @@ export type LibraryOptions = {
   sources: Source<string, unknown, unknown>[];
 };
 
+export type LibraryEvents = {
+  trackStart: (track: Track) => void;
+};
+
 export class Library {
+  private events = new EventEmitter() as TypedEventEmitter<LibraryEvents>;
   readonly tracks: TrackStore;
 
   constructor(private options: LibraryOptions) {
     this.tracks = options.store.tracks;
+    this.options.player.on('started', (track) => {
+      this.events.emit('trackStart', track);
+    });
   }
 
   getSource<K extends string, I, M, S extends Source<K, I, M>>(sourceName: K): S | undefined {
@@ -65,6 +75,18 @@ export class Library {
 
     const stream = source.stream(track);
     this.options.player.play(track, stream);
+  }
+
+  get currentlyPlaying() {
+    return this.options.player.currentlyPlaying;
+  }
+
+  on<E extends keyof LibraryEvents>(event: E, handler: LibraryEvents[E]) {
+    this.events.on(event, handler);
+  }
+
+  off<E extends keyof LibraryEvents>(event: E, handler: LibraryEvents[E]) {
+    this.events.off(event, handler);
   }
 
   private async startImport<K extends string, M>(

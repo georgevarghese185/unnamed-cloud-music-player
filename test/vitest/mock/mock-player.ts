@@ -6,8 +6,10 @@ import type { Player } from 'app/src-core/player';
 import type { PlayerEvents } from 'app/src-core/player/player';
 
 export class MockPlayer implements Player {
+  currentlyPlaying: Track | null = null;
+
   on<Event extends keyof PlayerEvents>(_event: Event, _handler: PlayerEvents[Event]): void {
-    throw new Error('Method not implemented.');
+    // do nothing
   }
   once<Event extends keyof PlayerEvents>(_event: Event, _handler: PlayerEvents[Event]): void {
     throw new Error('Method not implemented.');

@@ -22,7 +22,7 @@ class MediaSourceUnsupportedError extends Error {
 export default class HtmlPlayer implements Player {
   private audio: HTMLAudioElement;
   private events = new EventEmitter() as TypedEventEmitter<PlayerEvents>;
-  private currentlyPlaying: Track | null = null;
+  currentlyPlaying: Track | null = null;
 
   constructor() {
     let audioElement: HTMLAudioElement | null = document.querySelector(`#${AUDIO_ELEMENT_ID}`);
