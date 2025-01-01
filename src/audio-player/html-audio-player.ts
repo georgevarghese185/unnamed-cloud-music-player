@@ -4,10 +4,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import type { Audio, AudioPlayer } from 'app/src-core/audio-player';
-import { PlaybackError, type AudioPlayerEvents } from 'app/src-core/audio-player';
 import EventEmitter from 'events';
 import type TypedEventEmitter from 'typed-emitter';
+import {
+  type Audio,
+  type AudioPlayer,
+  PlaybackError,
+  type AudioPlayerEvents,
+} from 'app/src-core/audio-player';
 
 const AUDIO_ELEMENT_ID = 'music-player';
 const MAX_BUFFERED_SECONDS = 30;

@@ -4,8 +4,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import type { ImportJob, ImportProgress, Track } from 'app/src-core/library';
-import type { TrackImportError } from 'app/src-core/library/track-importer';
 import { inject, onMounted, onUnmounted, ref, shallowRef } from 'vue';
 import {
   importErrorsInjectionKey,
@@ -14,6 +12,8 @@ import {
   libraryInjectionKey,
 } from './use-library-provider';
 import createLibrary from './library-factory';
+import type { TrackImportError } from 'app/src-core/library/track-importer';
+import type { ImportJob, ImportProgress, Track } from 'app/src-core/library';
 import type { Source } from 'app/src-core/source';
 
 export default function useLibrary() {

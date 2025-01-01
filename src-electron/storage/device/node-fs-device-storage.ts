@@ -4,10 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import type { DeviceFile, DeviceStorage, Directory, File } from 'app/src-core/storage/device';
 import * as nodeFs from 'fs';
 import { basename, extname, join } from 'path';
 import { promisify } from 'util';
+import type { DeviceFile, DeviceStorage, Directory, File } from 'app/src-core/storage/device';
 
 export type FsCallback<T extends unknown[]> = (
   err: NodeJS.ErrnoException | null,

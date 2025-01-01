@@ -16,9 +16,9 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import type { Track } from 'app/src-core/library';
 import { useLibrary } from 'src/composables/library';
-import { onMounted } from 'vue';
 
 const library = useLibrary();
 

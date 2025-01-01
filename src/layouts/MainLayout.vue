@@ -15,9 +15,9 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import NavHeader from 'src/components/NavHeader.vue';
 import type { NavLink } from 'src/components/nav-header-models';
-import { useI18n } from 'vue-i18n';
 import PlayerIndicator from 'src/components/PlayerIndicator.vue';
 
 const { t } = useI18n();

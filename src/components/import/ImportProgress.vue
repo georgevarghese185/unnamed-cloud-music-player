@@ -33,8 +33,8 @@
 </template>
 
 <script setup lang="ts">
-import { useLibrary } from 'src/composables/library';
 import { useI18n } from 'vue-i18n';
+import { useLibrary } from 'src/composables/library';
 
 const { t } = useI18n();
 const library = useLibrary();

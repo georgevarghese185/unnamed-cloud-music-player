@@ -4,11 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import type { Track } from 'app/src-core/library';
-import type { ListOptions, TrackStore } from 'app/src-core/library/store/track';
 import { compact, flatMap, omit } from 'lodash';
 import type { LibraryDatabase } from './db';
-import type { Identifier } from 'app/src-core/library';
+import type { Track, Identifier } from 'app/src-core/library';
+import type { ListOptions, TrackStore } from 'app/src-core/library/store/track';
 
 export class IndexedDbTrackStore implements TrackStore {
   constructor(protected db: LibraryDatabase) {}

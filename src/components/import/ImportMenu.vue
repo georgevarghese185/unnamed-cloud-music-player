@@ -13,12 +13,12 @@
 </template>
 
 <script setup lang="ts">
-import { useLibrary } from 'src/composables/library';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useLibrary } from 'src/composables/library';
 import ImportSourcePicker from 'src/components/import/ImportSourcePicker.vue';
 import ImportProgress from 'src/components/import/ImportProgress.vue';
 import type { Source } from 'app/src-core/source';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

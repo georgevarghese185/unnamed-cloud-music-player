@@ -5,11 +5,11 @@
  */
 
 import EventEmitter from 'events';
+import type TypedEventEmitter from 'typed-emitter';
 import type { AudioPlayer } from '../audio-player';
 import type { Source } from '../source';
 import { UnsupportedSourceError } from './errors';
 import type { Track } from './track';
-import type TypedEventEmitter from 'typed-emitter';
 
 export type PlayerEvents = {
   play: () => void;
