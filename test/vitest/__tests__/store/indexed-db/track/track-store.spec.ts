@@ -1,17 +1,17 @@
 /* Any copyright is dedicated to the Public Domain.
  * https://creativecommons.org/publicdomain/zero/1.0/ */
 
-import { MockLibraryDatabase } from 'app/test/vitest/mock/mock-library-database';
-import { createTracks } from './fixture';
-import { IndexedDbTrackStore } from 'src/library/store/indexed-db/track';
-import type { LibraryDatabase } from 'src/library/store/indexed-db/db';
-import { identifiersExpectation } from './expectation';
+import { resolve } from 'path';
 import { range } from 'lodash';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { deviceTrackExpectation } from '../../../expectation/track';
+import { createTracks } from './fixture';
+import { identifiersExpectation } from './expectation';
+import { MockLibraryDatabase } from 'app/test/vitest/mock/mock-library-database';
+import { IndexedDbTrackStore } from 'src/library/store/indexed-db/track';
+import type { LibraryDatabase } from 'src/library/store/indexed-db/db';
 import type { DeviceSourceMetadata } from 'app/src-core/source/device';
 import type { Track } from 'app/src-core/library';
-import { resolve } from 'path';
 
 describe('IndexedDB track store', () => {
   let db: LibraryDatabase;

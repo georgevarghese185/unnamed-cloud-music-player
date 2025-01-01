@@ -4,10 +4,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import type { Track } from 'app/src-core/library';
-import type { Identifier } from 'app/src-core/library';
 import type { DexieOptions, EntityTable } from 'dexie';
-import Dexie from 'dexie';
+import DexieJs from 'dexie';
+import type { Track, Identifier } from 'app/src-core/library';
 
 const DB_NAME = 'Library';
 
@@ -18,7 +17,7 @@ export interface IIdentifier extends Identifier {
   trackId: number;
 }
 
-export class LibraryDatabase extends Dexie {
+export class LibraryDatabase extends DexieJs {
   tracks!: EntityTable<ITrack, 'id'>;
   identifiers!: EntityTable<IIdentifier, 'id'>;
 

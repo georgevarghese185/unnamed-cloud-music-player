@@ -1,17 +1,17 @@
 /* Any copyright is dedicated to the Public Domain.
  * https://creativecommons.org/publicdomain/zero/1.0/ */
 
+import { resolve } from 'path';
+import { randomBytes } from 'crypto';
+import * as fs from 'fs';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { BaseWindow } from 'electron';
+import { hashBuffer, hashUint8Array } from '../util/hash';
 import { ElectronDeviceStorage } from 'app/src-electron/storage/device/electron-device-storage';
 import type { Directory, File } from 'app/src-core/storage/device';
-import { resolve } from 'path';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NodeFsDeviceStorage } from 'app/src-electron/storage/device/node-fs-device-storage';
 import { bridge } from 'app/src-electron/bridge';
 import { setupIpcForBridgeApi } from 'app/src-electron/bridge/ipc/setup';
-import type { BaseWindow } from 'electron';
-import { randomBytes } from 'crypto';
-import { hashBuffer, hashUint8Array } from '../util/hash';
-import * as fs from 'fs';
 
 vi.mock('electron');
 

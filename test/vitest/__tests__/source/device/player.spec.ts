@@ -1,13 +1,13 @@
 /* Any copyright is dedicated to the Public Domain.
  * https://creativecommons.org/publicdomain/zero/1.0/ */
 
-import type { ImportProgress } from 'app/src-core/library';
-import { createDeviceLibraryFixture } from './fixture';
-import { describe, expect, it, vi } from 'vitest';
 import { resolve } from 'path';
 import * as nodeFs from 'fs';
 import { fail } from 'assert';
+import { describe, expect, it, vi } from 'vitest';
 import { hashFile, hashUint8Array } from '../../util/hash';
+import { createDeviceLibraryFixture } from './fixture';
+import type { ImportProgress } from 'app/src-core/library';
 import type { Audio } from 'app/src-core/audio-player';
 
 describe('Player + device source', () => {

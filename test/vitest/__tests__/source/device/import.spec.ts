@@ -1,15 +1,15 @@
 /* Any copyright is dedicated to the Public Domain.
  * https://creativecommons.org/publicdomain/zero/1.0/ */
 
+import { resolve } from 'path';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import MemoryFileSystem from 'memory-fs';
+import { deviceTrackExpectation } from '../../expectation/track';
+import { createDeviceLibraryFixture } from './fixture';
 import type { ImportProgress } from 'app/src-core/library';
 import type { Track } from 'app/src-core/library/track';
 import { TrackImportError } from 'app/src-core/library/track-importer';
 import type { Directory } from 'app/src-core/storage/device';
-import { createDeviceLibraryFixture } from './fixture';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { deviceTrackExpectation } from '../../expectation/track';
-import { resolve } from 'path';
-import MemoryFileSystem from 'memory-fs';
 
 describe('Import from device source', () => {
   let fs = new MemoryFileSystem();

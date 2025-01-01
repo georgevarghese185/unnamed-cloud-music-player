@@ -4,7 +4,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import type { DeviceFile, Directory } from 'app/src-core/storage/device';
 import type { IpcRendererEvent } from 'electron';
 import { ipcRenderer } from 'electron';
 import {
@@ -14,6 +13,7 @@ import {
   IPC_CHANNEL_READ_FILE,
 } from './ipc/channel';
 import type { OpenFileSectorOptions } from './ipc/file';
+import type { DeviceFile, Directory } from 'app/src-core/storage/device';
 
 declare global {
   interface Window {

@@ -6,15 +6,15 @@
 
 import { differenceWith } from 'lodash';
 import type { AudioPlayer } from '../audio-player';
+import type { Source } from '../source';
+import { getErrorMessage } from '../error/util';
 import type { TrackStore } from './store/track';
 import type { Track } from './track';
 import { eqIdentifiers, getIdentifiers } from './track';
 import type { TrackImporter } from './track-importer';
 import { TrackImportError } from './track-importer';
-import type { Source } from '../source';
 import type { ImportJob } from './import-job';
 import { ImportJobImpl } from './import-job';
-import { getErrorMessage } from '../error/util';
 import { Player } from './player';
 
 export type LibraryOptions = {

@@ -4,17 +4,17 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import type { NodeFsDeviceStorage } from '../../storage/device/node-fs-device-storage';
-import type { Directory } from 'app/src-core/storage/device';
 import type { BaseWindow, FileFilter, OpenDialogOptions } from 'electron';
 import { dialog, ipcMain } from 'electron';
+import { v7 } from 'uuid';
+import type { NodeFsDeviceStorage } from '../../storage/device/node-fs-device-storage';
 import {
   IPC_CHANNEL_GET_FILE,
   IPC_CHANNEL_LIST_FILES,
   IPC_CHANNEL_OPEN_FILE_SELECTOR,
   IPC_CHANNEL_READ_FILE,
 } from './channel';
-import { v7 } from 'uuid';
+import type { Directory } from 'app/src-core/storage/device';
 
 export type OpenFileSectorOptions = {
   files?: boolean;

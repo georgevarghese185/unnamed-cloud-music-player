@@ -4,11 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import type { ImportJob, ImportProgress } from 'app/src-core/library';
-import type { Library } from 'app/src-core/library';
 import type { InjectionKey, Ref, ShallowRef } from 'vue';
 import { provide, ref, shallowRef } from 'vue';
 import createLibrary from './library-factory';
+import type { Library, ImportJob, ImportProgress } from 'app/src-core/library';
 import type { TrackImportError } from 'app/src-core/library/track-importer';
 
 export const libraryInjectionKey = Symbol() as InjectionKey<ShallowRef<Library>>;

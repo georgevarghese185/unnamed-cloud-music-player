@@ -4,18 +4,17 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { UNSUPPORTED_FILE } from '../constants/errors';
-import { getErrorMessage } from '../error/util';
-import type { Track } from '../library';
-import { TrackImporter } from '../library/track-importer';
-import type { ImportQueue } from '../library/track-importer';
-import { TrackImportError } from '../library/track-importer';
-import type { AudioPlayer } from '../audio-player';
-import type { DeviceFile, DeviceStorage, File } from '../storage/device';
-import type { Source } from './source';
 import { Mime } from 'mime';
 import standardMimeTypes from 'mime/types/standard.js';
 import otherMimeTypes from 'mime/types/other.js';
+import { UNSUPPORTED_FILE } from '../constants/errors';
+import { getErrorMessage } from '../error/util';
+import type { Track } from '../library';
+import { TrackImporter, TrackImportError } from '../library/track-importer';
+import type { ImportQueue } from '../library/track-importer';
+import type { AudioPlayer } from '../audio-player';
+import type { DeviceFile, DeviceStorage, File } from '../storage/device';
+import type { Source } from './source';
 
 /**
  *

@@ -1,9 +1,9 @@
 /* Any copyright is dedicated to the Public Domain.
  * https://creativecommons.org/publicdomain/zero/1.0/ */
 
+import EventEmitter from 'events';
 import type { Track } from 'app/src-core/library';
 import type { Audio, AudioPlayer } from 'app/src-core/audio-player';
-import EventEmitter from 'events';
 
 export class MockAudioPlayer extends EventEmitter implements AudioPlayer {
   track: Track | null = null;

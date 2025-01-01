@@ -1,9 +1,9 @@
 /* Any copyright is dedicated to the Public Domain.
  * https://creativecommons.org/publicdomain/zero/1.0/ */
 
+import { basename, extname } from 'path';
 import type { Track } from 'app/src-core/library';
 import type { DeviceSourceMetadata } from 'app/src-core/source/device';
-import { basename, extname } from 'path';
 
 export const createTracks = (filePaths: string[]): Track<'device', DeviceSourceMetadata>[] => {
   return filePaths.map((path) => ({

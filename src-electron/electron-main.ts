@@ -4,10 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import os from 'os';
 import { fileURLToPath } from 'url';
+import { app, BrowserWindow } from 'electron';
 import { setupIpcForBridgeApi } from './bridge/ipc/setup';
 
 // needed in case process is undefined under Linux
