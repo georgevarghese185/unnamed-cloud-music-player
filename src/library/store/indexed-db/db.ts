@@ -5,7 +5,7 @@
  */
 
 import type { Track } from 'app/src-core/library';
-import type { Identifier } from 'app/src-core/library/track';
+import type { Identifier } from 'app/src-core/library';
 import type { DexieOptions, EntityTable } from 'dexie';
 import Dexie from 'dexie';
 

@@ -25,7 +25,7 @@ const library = useLibrary();
 onMounted(() => library.tracks.find());
 
 function play(track: Track) {
-  library.play(track);
+  library.player.play(track);
 }
 
 const tracks = library.tracks.list;

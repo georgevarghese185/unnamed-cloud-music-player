@@ -11,20 +11,20 @@ import { ElectronDeviceStorage } from 'app/src-electron/storage/device/electron-
 import { useQuasar } from 'quasar';
 import { LibraryDatabase } from 'src/library/store/indexed-db/db';
 import { IndexedDbTrackStore } from 'src/library/store/indexed-db/track';
-import HtmlPlayer from 'src/player/html-player';
+import HtmlAudioPlayer from 'src/audio-player/html-audio-player';
 
 export default function createLibrary() {
   const $q = useQuasar();
-  const player = new HtmlPlayer();
+  const audioPlayer = new HtmlAudioPlayer();
 
   const sources: Source<string, unknown, unknown>[] = [];
 
   if ($q.platform.is.electron) {
-    sources.push(new DeviceSource(new ElectronDeviceStorage(), player));
+    sources.push(new DeviceSource(new ElectronDeviceStorage(), audioPlayer));
   }
 
   return new Library({
-    player,
+    audioPlayer,
     store: {
       tracks: new IndexedDbTrackStore(new LibraryDatabase()),
     },

@@ -10,7 +10,4 @@
 
 <script setup lang="ts">
 import ImportMenu from 'src/components/import/ImportMenu.vue';
-import { useLibraryProvider } from 'src/composables/library';
-
-useLibraryProvider();
 </script>
