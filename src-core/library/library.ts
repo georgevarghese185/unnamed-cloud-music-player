@@ -5,7 +5,7 @@
  */
 
 import { differenceWith } from 'lodash';
-import type { Player } from '../player';
+import type { AudioPlayer } from '../audio-player';
 import type { TrackStore } from './store/track';
 import type { Track } from './track';
 import { eqIdentifiers, getIdentifiers } from './track';
@@ -25,7 +25,7 @@ export class UnsupportedSourceError extends Error {
 }
 
 export type LibraryOptions = {
-  player: Player;
+  audioPlayer: AudioPlayer;
   store: {
     tracks: TrackStore;
   };
@@ -42,7 +42,7 @@ export class Library {
 
   constructor(private options: LibraryOptions) {
     this.tracks = options.store.tracks;
-    this.options.player.on('started', (track) => {
+    this.options.audioPlayer.on('started', (track) => {
       this.events.emit('trackStart', track);
     });
   }
@@ -74,11 +74,11 @@ export class Library {
     }
 
     const stream = source.stream(track);
-    this.options.player.play(track, stream);
+    this.options.audioPlayer.play(track, stream);
   }
 
   get currentlyPlaying() {
-    return this.options.player.currentlyPlaying;
+    return this.options.audioPlayer.currentlyPlaying;
   }
 
   on<E extends keyof LibraryEvents>(event: E, handler: LibraryEvents[E]) {

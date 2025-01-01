@@ -5,8 +5,8 @@
  */
 
 import type { Track } from 'app/src-core/library';
-import type { Player } from 'app/src-core/player';
-import { PlaybackError, type PlayerEvents } from 'app/src-core/player/player';
+import type { AudioPlayer } from 'app/src-core/audio-player';
+import { PlaybackError, type PlayerEvents } from 'app/src-core/audio-player/audio-player';
 import EventEmitter from 'events';
 import type TypedEventEmitter from 'typed-emitter';
 
@@ -19,7 +19,7 @@ class MediaSourceUnsupportedError extends Error {
   }
 }
 
-export default class HtmlPlayer implements Player {
+export default class HtmlAudioPlayer implements AudioPlayer {
   private audio: HTMLAudioElement;
   private events = new EventEmitter() as TypedEventEmitter<PlayerEvents>;
   currentlyPlaying: Track | null = null;

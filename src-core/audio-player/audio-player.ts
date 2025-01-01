@@ -24,7 +24,7 @@ export class PlaybackError extends Error {
   }
 }
 
-export interface Player {
+export interface AudioPlayer {
   readonly currentlyPlaying: Track | null;
   supports(mimeType: string): boolean;
   play(track: Track, stream: ReadableStream<Uint8Array>): void;

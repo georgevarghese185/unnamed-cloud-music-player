@@ -2,10 +2,10 @@
  * https://creativecommons.org/publicdomain/zero/1.0/ */
 
 import type { Track } from 'app/src-core/library';
-import type { Player } from 'app/src-core/player';
-import type { PlayerEvents } from 'app/src-core/player/player';
+import type { AudioPlayer } from 'app/src-core/audio-player';
+import type { PlayerEvents } from 'app/src-core/audio-player/audio-player';
 
-export class MockPlayer implements Player {
+export class MockAudioPlayer implements AudioPlayer {
   currentlyPlaying: Track | null = null;
 
   on<Event extends keyof PlayerEvents>(_event: Event, _handler: PlayerEvents[Event]): void {

@@ -10,7 +10,7 @@ import type { Track } from '../library';
 import { TrackImporter } from '../library/track-importer';
 import type { ImportQueue } from '../library/track-importer';
 import { TrackImportError } from '../library/track-importer';
-import type { Player } from '../player';
+import type { AudioPlayer } from '../audio-player';
 import type { DeviceFile, DeviceStorage, File } from '../storage/device';
 import type { Source } from './source';
 import { Mime } from 'mime';
@@ -39,7 +39,7 @@ export class DeviceSource implements Source<'device', string[], DeviceSourceMeta
 
   constructor(
     private storage: DeviceStorage,
-    private player: Player,
+    private player: AudioPlayer,
   ) {}
 
   import(paths: string[]): TrackImporter<'device', DeviceSourceMetadata> {
