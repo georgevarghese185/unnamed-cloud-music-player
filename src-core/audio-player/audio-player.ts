@@ -4,31 +4,35 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import type { Track } from '../library';
-
-export type PlayerEvents = {
-  started: (track: Track) => void;
-  buffering: (track: Track) => void;
-  playing: (track: Track) => void;
-  paused: (track: Track) => void;
-  stopped: (track: Track) => void;
+export type AudioPlayerEvents = {
+  started: () => void;
+  buffering: () => void;
+  playing: () => void;
+  paused: () => void;
+  stopped: () => void;
   error: (e: PlaybackError) => void;
 };
 
 export class PlaybackError extends Error {
-  constructor(
-    reason: string,
-    public readonly track?: Track,
-  ) {
-    super(`Playback Error${track ? `: Error while playing ${track.name}` : ''}: ${reason}`);
+  constructor(reason: string) {
+    super(`Playback Error: ${reason}`);
   }
 }
 
+export type Audio = {
+  mimeType: string;
+  stream: ReadableStream<Uint8Array>;
+};
+
 export interface AudioPlayer {
-  readonly currentlyPlaying: Track | null;
   supports(mimeType: string): boolean;
-  play(track: Track, stream: ReadableStream<Uint8Array>): void;
-  on<Event extends keyof PlayerEvents>(event: Event, handler: PlayerEvents[Event]): void;
-  once<Event extends keyof PlayerEvents>(event: Event, handler: PlayerEvents[Event]): void;
-  off<Event extends keyof PlayerEvents>(event: Event, handler: PlayerEvents[Event]): void;
+  play(audio: Audio): void;
+  pause(): void;
+  resume(): void;
+  on<Event extends keyof AudioPlayerEvents>(event: Event, handler: AudioPlayerEvents[Event]): void;
+  once<Event extends keyof AudioPlayerEvents>(
+    event: Event,
+    handler: AudioPlayerEvents[Event],
+  ): void;
+  off<Event extends keyof AudioPlayerEvents>(event: Event, handler: AudioPlayerEvents[Event]): void;
 }
