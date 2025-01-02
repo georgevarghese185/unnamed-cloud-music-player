@@ -4,6 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import type { ShallowRef } from 'vue';
 import { inject, onMounted, onUnmounted, ref, shallowRef } from 'vue';
 import {
   importErrorsInjectionKey,
@@ -11,20 +12,27 @@ import {
   importProgressInjectionKey,
   libraryInjectionKey,
 } from './use-library-provider';
-import createLibrary from './library-factory';
 import type { TrackImportError } from 'app/src-core/library/track-importer';
-import type { ImportJob, ImportProgress, Track } from 'app/src-core/library';
+import type { ImportJob, ImportProgress, Library, Track } from 'app/src-core/library';
 import type { Source } from 'app/src-core/source';
 
+function injectLibrary(): ShallowRef<Library> {
+  const library = inject(libraryInjectionKey);
+
+  if (!library) {
+    throw new Error('Library should have been provided with provide()');
+  }
+
+  return library;
+}
+
 export default function useLibrary() {
-  const library = inject(libraryInjectionKey, shallowRef(createLibrary()));
+  const library = injectLibrary();
   const importJob = inject(importJobInjectionKey, ref(null));
   const importProgress = inject(importProgressInjectionKey, ref(null));
   const importErrors = inject(importErrorsInjectionKey, ref([]));
-
   const currentlyPlaying = ref(library.value.player.currentlyPlaying);
   const playerState = ref(library.value.player.state);
-
   const tracks = shallowRef<Track[]>([]);
 
   function onImportProgress(tracks: Track[], progress: ImportProgress) {
