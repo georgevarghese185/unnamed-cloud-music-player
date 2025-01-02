@@ -12,6 +12,7 @@ import {
   importJobInjectionKey,
   importProgressInjectionKey,
   libraryInjectionKey,
+  tracksInjectionKey,
 } from './use-library-provider';
 import type { TrackImportError } from 'app/src-core/library/track-importer';
 import type { ImportJob, ImportProgress, Library, Track } from 'app/src-core/library';
@@ -33,9 +34,12 @@ export default function useLibrary() {
   const importJob = inject(importJobInjectionKey, ref(null));
   const importProgress = inject(importProgressInjectionKey, ref(null));
   const importErrors = inject(importErrorsInjectionKey, ref([]));
+  const { tracks, setTracks } = inject(tracksInjectionKey, {
+    tracks: shallowRef([]),
+    setTracks: () => {},
+  });
   const currentlyPlaying = ref(library.value.player.currentlyPlaying);
   const playerState = ref(library.value.player.state);
-  const tracks = shallowRef<Track[]>([]);
 
   function onImportProgress(tracks: Track[], progress: ImportProgress) {
     importProgress.value = progress;
@@ -47,6 +51,7 @@ export default function useLibrary() {
 
   function onImportComplete(progress: ImportProgress) {
     importProgress.value = progress;
+    void findTracks();
   }
 
   function onImport(job: ImportJob) {
@@ -100,7 +105,7 @@ export default function useLibrary() {
   }
 
   async function findTracks() {
-    tracks.value = await library.value.tracks.list({ limit: 1000000, offset: 0 });
+    setTracks(await library.value.tracks.list({ limit: 1000000, offset: 0 }));
   }
 
   return {
