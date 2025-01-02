@@ -6,7 +6,7 @@
 
 import EventEmitter from 'events';
 import type TypedEventEmitter from 'typed-emitter';
-import type { AudioPlayer } from '../audio-player';
+import type { AudioPlayer, PlaybackError } from '../audio-player';
 import type { Source } from '../source';
 import { UnsupportedSourceError } from './errors';
 import type { Track } from './track';
@@ -14,6 +14,7 @@ import type { Track } from './track';
 export type PlayerEvents = {
   play: () => void;
   pause: () => void;
+  error: (e: PlaybackError) => void;
 };
 
 export type PlayerState = 'playing' | 'paused';
@@ -42,6 +43,9 @@ export class Player {
     audioPlayer.on('stopped', () => {
       this.state = 'paused';
       this.events.emit('pause');
+    });
+    audioPlayer.on('error', (e) => {
+      this.events.emit('error', e);
     });
   }
 
