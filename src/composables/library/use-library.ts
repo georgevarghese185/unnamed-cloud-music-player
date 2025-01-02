@@ -6,6 +6,7 @@
 
 import type { ShallowRef } from 'vue';
 import { inject, onMounted, onUnmounted, ref, shallowRef } from 'vue';
+import { Notify } from 'quasar';
 import {
   importErrorsInjectionKey,
   importJobInjectionKey,
@@ -15,6 +16,7 @@ import {
 import type { TrackImportError } from 'app/src-core/library/track-importer';
 import type { ImportJob, ImportProgress, Library, Track } from 'app/src-core/library';
 import type { Source } from 'app/src-core/source';
+import type { PlaybackError } from 'app/src-core/audio-player';
 
 function injectLibrary(): ShallowRef<Library> {
   const library = inject(libraryInjectionKey);
@@ -58,6 +60,13 @@ export default function useLibrary() {
     playerState.value = library.value.player.state;
   }
 
+  function onPlayerError(e: PlaybackError) {
+    Notify.create({
+      type: 'negative',
+      message: e.message,
+    });
+  }
+
   onMounted(() => {
     if (importJob.value) {
       onImport(importJob.value);
@@ -65,6 +74,7 @@ export default function useLibrary() {
 
     library.value.player.on('play', onPlayerStateChange);
     library.value.player.on('pause', onPlayerStateChange);
+    library.value.player.on('error', onPlayerError);
   });
 
   onUnmounted(() => {
@@ -73,6 +83,7 @@ export default function useLibrary() {
     importJob.value?.off('complete', onImportComplete);
     library.value.player.off('play', onPlayerStateChange);
     library.value.player.off('pause', onPlayerStateChange);
+    library.value.player.off('error', onPlayerError);
   });
 
   function startImport<K extends string, I, M>(source: Source<K, I, M>, inputs: I) {
