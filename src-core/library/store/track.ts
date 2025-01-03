@@ -13,6 +13,7 @@ export type ListOptions = {
 
 export interface TrackStore {
   add(track: Track[]): Promise<void>;
+  update(track: Track[]): Promise<void>;
   findByIdentifiers(identifiers: Identifier[]): Promise<Track[]>;
   list(options: ListOptions): Promise<Track[]>;
 }

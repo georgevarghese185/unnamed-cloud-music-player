@@ -11,6 +11,13 @@ export type Identifier = {
   value: string;
 };
 
+export type Metadata = {
+  title?: string;
+  album?: string;
+  artist?: string;
+  duration?: number;
+};
+
 export type Track<K extends string = string, M = unknown> = {
   id: number;
   mime: string;
@@ -24,6 +31,7 @@ export type Track<K extends string = string, M = unknown> = {
     name: K;
     meta: M;
   };
+  metadata?: Metadata;
 };
 
 /**

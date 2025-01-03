@@ -17,6 +17,10 @@ export class IndexedDbTrackStore implements TrackStore {
     await this.addIdentifiersFrom(insertedTracks);
   }
 
+  async update(tracks: Track[]): Promise<void> {
+    await this.db.tracks.bulkUpdate(tracks.map((track) => ({ key: track.id, changes: track })));
+  }
+
   async findByIdentifiers(identifiers: Identifier[]): Promise<Track[]> {
     const trackIdentifiers = await this.db.identifiers
       .where('[name+value]')

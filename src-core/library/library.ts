@@ -7,8 +7,9 @@
 import type { AudioPlayer } from '../audio-player';
 import type { Source } from '../source';
 import type { TrackStore } from './store/track';
-import { ImportJob } from './import-job';
+import { ImportJob } from './job/import-job';
 import { Player } from './player';
+import { MetadataExtractionJob } from './job/metadata-extraction-job';
 
 export type LibraryOptions = {
   audioPlayer: AudioPlayer;
@@ -39,5 +40,9 @@ export class Library {
   import<K extends string, I, M, S extends Source<K, I, M>>(source: S, inputs: I): ImportJob<K, M> {
     const importer = source.import(inputs);
     return new ImportJob(importer, this.tracks);
+  }
+
+  updateAllMetadata() {
+    return new MetadataExtractionJob(this.tracks, this.sources);
   }
 }

@@ -3,8 +3,9 @@
 
 import { basename, resolve, extname } from 'path';
 import { expect } from 'vitest';
+import type { Metadata } from 'app/src-core/library';
 
-export const deviceTrackExpectation = (path: string, fileSize: number) => ({
+export const deviceTrackExpectation = (path: string, fileSize: number, metadata?: Metadata) => ({
   id: expect.any(Number),
   identifiers: [
     {
@@ -33,4 +34,5 @@ export const deviceTrackExpectation = (path: string, fileSize: number) => ({
       filePath: resolve(path),
     },
   },
+  metadata,
 });
