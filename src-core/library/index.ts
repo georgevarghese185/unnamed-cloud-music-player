@@ -5,7 +5,7 @@
  */
 
 export { Library } from './library';
-export type { ImportJob, ImportJobEvents, ImportProgress } from './import-job';
+export { ImportJob, type ImportJobEvents, type ImportProgress } from './import-job';
 export type { LibraryOptions } from './library';
 export type { Track, Identifier } from './track';
 export { Player } from './player';

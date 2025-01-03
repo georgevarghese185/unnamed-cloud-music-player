@@ -5,14 +5,12 @@
  */
 
 import EventEmitter from 'events';
-import type { TrackImportError } from './track-importer';
-import type { Track } from './track';
-
-export interface ImportJob {
-  getProgress(): ImportProgress;
-  on<Event extends keyof ImportJobEvents>(event: Event, handler: ImportJobEvents[Event]): void;
-  off<Event extends keyof ImportJobEvents>(event: Event, handler: ImportJobEvents[Event]): void;
-}
+import type TypedEventEmitter from 'typed-emitter';
+import { differenceWith } from 'lodash';
+import { getErrorMessage } from '../error/util';
+import { type TrackImporter, TrackImportError } from './track-importer';
+import { eqIdentifiers, getIdentifiers, type Track } from './track';
+import type { TrackStore } from './store/track';
 
 export type ImportProgress = {
   completed: boolean;
@@ -26,29 +24,102 @@ export type ImportJobEvents = {
   importError: (errors: TrackImportError[]) => void;
 };
 
-export class ImportJobImpl extends EventEmitter implements ImportJob {
+export class ImportJob<K extends string = string, M = unknown> {
+  private emitter = new EventEmitter() as TypedEventEmitter<ImportJobEvents>;
   private progress: ImportProgress = {
     completed: false,
     imported: 0,
     errors: [],
   };
 
+  constructor(
+    private readonly importer: TrackImporter<K, M>,
+    private readonly tracks: TrackStore,
+  ) {
+    this.start().catch((e) => {
+      this.onImportError([
+        new TrackImportError(`Import interrupted unexpectedly: ${getErrorMessage(e)}`, ''),
+      ]);
+      this.onComplete();
+    });
+  }
+
   getProgress() {
     return { ...this.progress };
   }
 
-  onComplete() {
+  on<Event extends keyof ImportJobEvents>(event: Event, handler: ImportJobEvents[Event]): void {
+    this.emitter.on(event, handler);
+  }
+
+  off<Event extends keyof ImportJobEvents>(event: Event, handler: ImportJobEvents[Event]): void {
+    this.emitter.off(event, handler);
+  }
+
+  private async start() {
+    let imports: (Track<K, M> | TrackImportError)[] | null;
+    const trackStore = this.tracks;
+
+    while ((imports = await this.importer.next())) {
+      const [tracks, errors] = split(imports);
+
+      if (tracks.length) {
+        const newTracks = await this.findNewTracks(trackStore, tracks);
+
+        if (newTracks.length) {
+          await trackStore.add(newTracks);
+          this.onImport(newTracks);
+        }
+      }
+
+      if (errors.length) {
+        this.onImportError(errors);
+      }
+    }
+
+    this.onComplete();
+  }
+
+  private onComplete() {
     this.progress.completed = true;
-    this.emit('complete', this.getProgress());
+    this.emitter.emit('complete', this.getProgress());
   }
 
-  onImport(tracks: Track[]) {
+  private onImport(tracks: Track[]) {
     this.progress.imported += tracks.length;
-    this.emit('import', tracks, this.getProgress());
+    this.emitter.emit('import', tracks, this.getProgress());
   }
 
-  onImportError(errors: TrackImportError[]) {
+  private onImportError(errors: TrackImportError[]) {
     this.progress.errors = [...this.progress.errors, ...errors];
-    this.emit('importError', errors);
+    this.emitter.emit('importError', errors);
   }
+
+  /** Removes any tracks that have already been imported previously */
+  private async findNewTracks(
+    trackStore: TrackStore,
+    tracks: Track<K, M>[],
+  ): Promise<Track<K, M>[]> {
+    const existingTracks = await trackStore.findByIdentifiers(getIdentifiers(...tracks));
+    const newTracks = differenceWith(tracks, existingTracks, eqIdentifiers);
+
+    return newTracks;
+  }
+}
+
+function split<K extends string, M>(
+  tracksAndErrors: (Track<K, M> | TrackImportError)[],
+): [Track<K, M>[], TrackImportError[]] {
+  const tracks: Track<K, M>[] = [];
+  const errors: TrackImportError[] = [];
+
+  tracksAndErrors.forEach((trackOrError) => {
+    if (trackOrError instanceof TrackImportError) {
+      errors.push(trackOrError);
+    } else {
+      tracks.push(trackOrError);
+    }
+  });
+
+  return [tracks, errors];
 }

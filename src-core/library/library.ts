@@ -4,17 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { differenceWith } from 'lodash';
 import type { AudioPlayer } from '../audio-player';
 import type { Source } from '../source';
-import { getErrorMessage } from '../error/util';
 import type { TrackStore } from './store/track';
-import type { Track } from './track';
-import { eqIdentifiers, getIdentifiers } from './track';
-import type { TrackImporter } from './track-importer';
-import { TrackImportError } from './track-importer';
-import type { ImportJob } from './import-job';
-import { ImportJobImpl } from './import-job';
+import { ImportJob } from './import-job';
 import { Player } from './player';
 
 export type LibraryOptions = {
@@ -28,78 +21,23 @@ export type LibraryOptions = {
 export class Library {
   readonly tracks: TrackStore;
   readonly player: Player;
+  private readonly audioPlayer: AudioPlayer;
+  private readonly sources: Source<string, unknown, unknown>[];
 
-  constructor(private options: LibraryOptions) {
+  constructor(options: LibraryOptions) {
     this.tracks = options.store.tracks;
-    this.player = new Player(options.sources, options.audioPlayer);
+    this.audioPlayer = options.audioPlayer;
+    this.sources = options.sources;
+    this.player = new Player(this.sources, this.audioPlayer);
   }
 
   getSource<K extends string, I, M, S extends Source<K, I, M>>(sourceName: K): S | undefined {
-    const source = this.options.sources.find((s): s is S => s.name === sourceName);
+    const source = this.sources.find((s): s is S => s.name === sourceName);
     return source;
   }
 
-  import<K extends string, I, M, S extends Source<K, I, M>>(source: S, inputs: I): ImportJob {
+  import<K extends string, I, M, S extends Source<K, I, M>>(source: S, inputs: I): ImportJob<K, M> {
     const importer = source.import(inputs);
-    const job = new ImportJobImpl();
-    setTimeout(() => {
-      this.startImport(importer, job).catch((e) => {
-        job.onImportError([
-          new TrackImportError(`Import interrupted unexpectedly: ${getErrorMessage(e)}`, ''),
-        ]);
-        job.onComplete();
-      });
-    });
-    return job;
-  }
-
-  private async startImport<K extends string, M>(
-    importer: TrackImporter<K, M>,
-    job: ImportJobImpl,
-  ) {
-    let imports: (Track | TrackImportError)[] | null;
-    const trackStore = this.options.store.tracks;
-
-    while ((imports = await importer.next())) {
-      const [tracks, errors] = split(imports);
-
-      if (tracks.length) {
-        const newTracks = await this.findNewTracks(trackStore, tracks);
-
-        if (newTracks.length) {
-          await trackStore.add(newTracks);
-          job.onImport(newTracks);
-        }
-      }
-
-      if (errors.length) {
-        job.onImportError(errors);
-      }
-    }
-
-    job.onComplete();
-  }
-
-  /** Removes any tracks that have already been imported previously */
-  private async findNewTracks(trackStore: TrackStore, tracks: Track[]): Promise<Track[]> {
-    const existingTracks = await trackStore.findByIdentifiers(getIdentifiers(...tracks));
-    const newTracks = differenceWith(tracks, existingTracks, eqIdentifiers);
-
-    return newTracks;
+    return new ImportJob(importer, this.tracks);
   }
 }
-
-const split = (tracksAndErrors: (Track | TrackImportError)[]): [Track[], TrackImportError[]] => {
-  const tracks: Track[] = [];
-  const errors: TrackImportError[] = [];
-
-  tracksAndErrors.forEach((trackOrError) => {
-    if (trackOrError instanceof TrackImportError) {
-      errors.push(trackOrError);
-    } else {
-      tracks.push(trackOrError);
-    }
-  });
-
-  return [tracks, errors];
-};
