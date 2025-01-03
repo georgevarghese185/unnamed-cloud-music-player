@@ -7,7 +7,7 @@
 export { Library } from './library';
 export { ImportJob, type ImportJobEvents, type ImportProgress } from './import-job';
 export type { LibraryOptions } from './library';
-export type { Track, Identifier } from './track';
+export type { Track, Identifier, Metadata } from './track';
 export { Player } from './player';
 export type { PlayerEvents } from './player';
 export * from './errors';

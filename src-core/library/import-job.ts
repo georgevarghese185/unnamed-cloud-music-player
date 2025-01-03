@@ -25,7 +25,7 @@ export type ImportJobEvents = {
 };
 
 export class ImportJob<K extends string = string, M = unknown> {
-  private emitter = new EventEmitter() as TypedEventEmitter<ImportJobEvents>;
+  private events = new EventEmitter() as TypedEventEmitter<ImportJobEvents>;
   private progress: ImportProgress = {
     completed: false,
     imported: 0,
@@ -49,11 +49,11 @@ export class ImportJob<K extends string = string, M = unknown> {
   }
 
   on<Event extends keyof ImportJobEvents>(event: Event, handler: ImportJobEvents[Event]): void {
-    this.emitter.on(event, handler);
+    this.events.on(event, handler);
   }
 
   off<Event extends keyof ImportJobEvents>(event: Event, handler: ImportJobEvents[Event]): void {
-    this.emitter.off(event, handler);
+    this.events.off(event, handler);
   }
 
   private async start() {
@@ -82,17 +82,17 @@ export class ImportJob<K extends string = string, M = unknown> {
 
   private onComplete() {
     this.progress.completed = true;
-    this.emitter.emit('complete', this.getProgress());
+    this.events.emit('complete', this.getProgress());
   }
 
   private onImport(tracks: Track[]) {
     this.progress.imported += tracks.length;
-    this.emitter.emit('import', tracks, this.getProgress());
+    this.events.emit('import', tracks, this.getProgress());
   }
 
   private onImportError(errors: TrackImportError[]) {
     this.progress.errors = [...this.progress.errors, ...errors];
-    this.emitter.emit('importError', errors);
+    this.events.emit('importError', errors);
   }
 
   /** Removes any tracks that have already been imported previously */
