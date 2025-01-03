@@ -8,7 +8,6 @@ import type { DeviceSourceMetadata } from 'app/src-core/source/device';
 export const createTracks = (filePaths: string[]): Track<'device', DeviceSourceMetadata>[] => {
   return filePaths.map((path) => ({
     id: 0,
-    name: basename(path),
     identifiers: [
       {
         name: 'file_path',
@@ -23,6 +22,11 @@ export const createTracks = (filePaths: string[]): Track<'device', DeviceSourceM
           : extname(path) === '.aac'
             ? 'audio/aac'
             : '',
+    file: {
+      name: basename(path),
+      extension: extname(path),
+      size: 10,
+    },
     source: {
       meta: { filePath: path },
       name: 'device',

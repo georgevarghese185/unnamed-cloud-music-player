@@ -39,6 +39,7 @@ describe('Electron Device Storage', () => {
       isDir: false,
       name: 'file1.txt',
       path: resolve('test/artifacts/files/file1.txt'),
+      size: 1,
     } as File);
   });
 
@@ -60,12 +61,14 @@ describe('Electron Device Storage', () => {
           isDir: false,
           name: 'file1.txt',
           path: resolve('test/artifacts/files/file1.txt'),
+          size: 1,
         },
         {
           ext: '.txt',
           isDir: false,
           name: 'file2.txt',
           path: resolve('test/artifacts/files/file2.txt'),
+          size: 1,
         },
         {
           isDir: true,

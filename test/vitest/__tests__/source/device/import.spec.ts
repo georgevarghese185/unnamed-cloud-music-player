@@ -2,8 +2,9 @@
  * https://creativecommons.org/publicdomain/zero/1.0/ */
 
 import { resolve } from 'path';
+import type * as nodeFs from 'fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import MemoryFileSystem from 'memory-fs';
+import { memfs } from 'memfs';
 import { deviceTrackExpectation } from '../../expectation/track';
 import { createDeviceLibraryFixture } from './fixture';
 import type { ImportProgress } from 'app/src-core/library';
@@ -12,11 +13,10 @@ import { TrackImportError } from 'app/src-core/library/track-importer';
 import type { Directory } from 'app/src-core/storage/device';
 
 describe('Import from device source', () => {
-  let fs = new MemoryFileSystem();
+  let { fs } = memfs() as unknown as { fs: typeof nodeFs };
 
   beforeEach(() => {
-    fs = new MemoryFileSystem();
-    fs.mkdirSync(resolve('/'));
+    ({ fs } = memfs() as unknown as { fs: typeof nodeFs });
   });
 
   it('should import a single track from a device source', async () => {
@@ -24,13 +24,13 @@ describe('Import from device source', () => {
 
     fs.writeFileSync(resolve('/test.mp3'), '0');
 
-    const job = await library.import(deviceSource, [resolve('/test.mp3')]);
+    const job = library.import(deviceSource, [resolve('/test.mp3')]);
     const progress = await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
 
     expect(progress.completed).toEqual(true);
     expect(progress.imported).toEqual(1);
     expect(await library.tracks.list({ limit: 1000000, offset: 0 })).toEqual([
-      deviceTrackExpectation('/test.mp3'),
+      deviceTrackExpectation('/test.mp3', 1),
     ]);
   });
 
@@ -76,11 +76,11 @@ describe('Import from device source', () => {
 
     // assert track list correctness
     const expectedTracks = [
-      deviceTrackExpectation('/folder/song1.mp3'),
-      deviceTrackExpectation('/folder/song2.mp3'),
-      deviceTrackExpectation('/folder/subfolder1/song3.ogg'),
-      deviceTrackExpectation('/folder/subfolder1/song4.aac'),
-      deviceTrackExpectation('/folder/subfolder1/song5.flac'),
+      deviceTrackExpectation('/folder/song1.mp3', 1),
+      deviceTrackExpectation('/folder/song2.mp3', 1),
+      deviceTrackExpectation('/folder/subfolder1/song3.ogg', 1),
+      deviceTrackExpectation('/folder/subfolder1/song4.aac', 1),
+      deviceTrackExpectation('/folder/subfolder1/song5.flac', 1),
     ];
 
     const actualTracks = await trackStore.list({ limit: 1000000, offset: 0 });
@@ -184,10 +184,10 @@ describe('Import from device source', () => {
     } as ImportProgress);
 
     expect(await library.tracks.list({ limit: 1000000, offset: 0 })).toEqual([
-      deviceTrackExpectation('/song1.mp3'),
-      deviceTrackExpectation('/song2.mp3'),
-      deviceTrackExpectation('/folder/song3.mp3'),
-      deviceTrackExpectation('/folder/subfolder/song4.mp3'),
+      deviceTrackExpectation('/song1.mp3', 1),
+      deviceTrackExpectation('/song2.mp3', 1),
+      deviceTrackExpectation('/folder/song3.mp3', 1),
+      deviceTrackExpectation('/folder/subfolder/song4.mp3', 1),
     ]);
   });
 
@@ -211,8 +211,8 @@ describe('Import from device source', () => {
 
     // song1 should not have been imported twice and song2 should be imported
     expect(await library.tracks.list({ limit: 1000000, offset: 0 })).toEqual([
-      deviceTrackExpectation('/folder/song1.mp3'),
-      deviceTrackExpectation('/folder/song2.mp3'),
+      deviceTrackExpectation('/folder/song1.mp3', 1),
+      deviceTrackExpectation('/folder/song2.mp3', 1),
     ]);
   });
 });

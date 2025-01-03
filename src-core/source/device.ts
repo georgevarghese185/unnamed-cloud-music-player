@@ -115,7 +115,6 @@ export class DeviceSource implements Source<'device', string[], DeviceSourceMeta
 const createTrack = (file: File, mimeType: string): Track<'device', DeviceSourceMetadata> => {
   return {
     id: 0,
-    name: file.name,
     mime: mimeType,
     identifiers: [
       {
@@ -123,6 +122,11 @@ const createTrack = (file: File, mimeType: string): Track<'device', DeviceSource
         value: file.path,
       },
     ],
+    file: {
+      name: file.name,
+      extension: file.ext,
+      size: file.size,
+    },
     source: { name: DEVICE_SOURCE_NAME, meta: { filePath: file.path } },
   };
 };

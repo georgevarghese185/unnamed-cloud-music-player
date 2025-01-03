@@ -33,7 +33,7 @@ describe('IndexedDB track store', () => {
     const insertedTracks = await db.tracks.toArray();
     const insertedIdentifiers = await db.identifiers.toArray();
 
-    expect(insertedTracks).toEqual(songPaths.map(deviceTrackExpectation));
+    expect(insertedTracks).toEqual(songPaths.map((t) => deviceTrackExpectation(t, 10)));
     expect(insertedIdentifiers).toEqual(identifiersExpectation(insertedTracks));
   });
 
@@ -54,7 +54,7 @@ describe('IndexedDB track store', () => {
     ]);
 
     expect(foundTracks).toEqual(
-      tracksToFind.map((track) => deviceTrackExpectation(track.source.meta.filePath)),
+      tracksToFind.map((track) => deviceTrackExpectation(track.source.meta.filePath, 10)),
     );
   });
 
@@ -66,13 +66,13 @@ describe('IndexedDB track store', () => {
     let list = await store.list({ limit: 5, offset: 0 });
 
     expect(list).toEqual(
-      tracks.slice(0, 5).map((track) => deviceTrackExpectation(track.source.meta.filePath)),
+      tracks.slice(0, 5).map((track) => deviceTrackExpectation(track.source.meta.filePath, 10)),
     );
 
     list = await store.list({ limit: 4, offset: 3 });
 
     expect(list).toEqual(
-      tracks.slice(3, 7).map((track) => deviceTrackExpectation(track.source.meta.filePath)),
+      tracks.slice(3, 7).map((track) => deviceTrackExpectation(track.source.meta.filePath, 10)),
     );
   });
 });

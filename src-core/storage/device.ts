@@ -22,5 +22,6 @@ export type File = {
   path: string;
   name: string;
   ext: string;
+  size: number;
   isDir: false;
 };
