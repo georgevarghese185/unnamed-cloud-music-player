@@ -73,12 +73,18 @@ export class MetadataExtractionJob {
   }
 
   private async findTracksToUpdate(tracksProducer: Producer<Track>) {
-    const tracks = await this.tracks.findTracksWithoutMetadata({
+    const tracksToUpdate = await this.tracks.findTracksWithoutMetadata({
       limit: 10000,
       offset: 0,
     });
 
-    await Promise.all(tracks.map((t) => tracksProducer.push(t)));
+    for (
+      let tracks = tracksToUpdate.splice(0, 5);
+      tracks.length > 1;
+      tracks = tracksToUpdate.splice(0, 5)
+    ) {
+      await Promise.all(tracks.map((t) => tracksProducer.push(t)));
+    }
   }
 
   private async updateMetadata(track: Track) {

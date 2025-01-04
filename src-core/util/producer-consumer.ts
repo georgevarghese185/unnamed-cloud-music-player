@@ -18,38 +18,40 @@ export class Producer<T> {
   private done = false;
   private events = new EventEmitter() as TypedEventEmitter<ProducerEvents>;
 
-  constructor(private readonly maxQueueSize: number) {}
+  constructor(private readonly maxQueueSize: number) {
+    // try not to push to many items in parallel
+    this.events.setMaxListeners(100);
+  }
 
   async push(item: T): Promise<void> {
-    if (this.queue.length >= this.maxQueueSize) {
+    while (this.queue.length >= this.maxQueueSize) {
       await this.waitForQueueSpace();
-      return this.push(item);
     }
 
     this.queue.push(item);
     this.events.emit('push');
   }
 
-  end() {
-    this.done = true;
-    this.events.emit('pop');
-    this.events.emit('push');
-  }
-
   async next(): Promise<T | null> {
-    const item = this.queue.shift();
-
-    if (item) {
-      this.events.emit('pop');
-      return item;
+    while (this.queue.length < 1 && !this.done) {
+      await this.waitForItems();
     }
 
-    if (this.done) {
+    const item = this.queue.shift();
+
+    if (!item) {
+      // if the loop above has exited but there's nothing in the queue, we're probably done (no more items to produce)
       return null;
     }
 
-    await this.waitForItems();
-    return this.next();
+    this.events.emit('pop');
+    return item;
+  }
+
+  end() {
+    this.done = true;
+    // unblock any this.next() calls that are still waiting for items
+    this.events.emit('push');
   }
 
   private waitForQueueSpace(): Promise<void> {
