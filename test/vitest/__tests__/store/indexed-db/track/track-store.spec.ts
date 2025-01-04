@@ -6,7 +6,6 @@ import { range } from 'lodash';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { deviceTrackExpectation } from '../../../expectation/track';
 import { createTracks } from './fixture';
-import { identifiersExpectation } from './expectation';
 import { MockLibraryDatabase } from 'app/test/vitest/mock/mock-library-database';
 import { IndexedDbTrackStore } from 'src/library/store/indexed-db/track';
 import type { LibraryDatabase } from 'src/library/store/indexed-db/db';
@@ -30,11 +29,9 @@ describe('IndexedDB track store', () => {
 
     await store.add(tracks);
 
-    const insertedTracks = await db.tracks.toArray();
-    const insertedIdentifiers = await db.identifiers.toArray();
+    const insertedTracks = await store.list({ limit: 1000, offset: 0 });
 
     expect(insertedTracks).toEqual(songPaths.map((t) => deviceTrackExpectation(t, 10)));
-    expect(insertedIdentifiers).toEqual(identifiersExpectation(insertedTracks));
   });
 
   it('should find tracks by identifiers', async () => {

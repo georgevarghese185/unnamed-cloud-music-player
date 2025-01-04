@@ -13,8 +13,6 @@ import { getErrorMessage } from '../../error/util';
 import type { TrackStore } from '../store/track';
 import type { Track } from '../track';
 
-const BATCH = 100;
-
 export class MetadataExtractionError extends Error {
   constructor(
     message: string,
@@ -37,6 +35,7 @@ export class MetadataExtractionJob {
   constructor(
     private readonly tracks: TrackStore,
     private readonly sources: Source<string, unknown, unknown>[],
+    private readonly batchSize = 100,
   ) {
     this.start().catch((e) => {
       this.events.emit('error', new MetadataExtractionError(getErrorMessage(e)));
@@ -55,12 +54,17 @@ export class MetadataExtractionJob {
   }
 
   private async start() {
-    // TODO: only get tracks that are missing metadata
-    for (
-      let offset = 0, tracks = await this.tracks.list({ limit: BATCH, offset });
-      tracks.length > 0;
-      offset = offset + BATCH, tracks = await this.tracks.list({ limit: BATCH, offset })
-    ) {
+    let tracks: Track[] = [];
+
+    const nextTracks = async () => {
+      const tracks = await this.tracks.findTracksWithoutMetadata({
+        limit: this.batchSize,
+        offset: 0,
+      });
+      return tracks;
+    };
+
+    while ((tracks = await nextTracks()).length > 0) {
       await this.updateMetadata(tracks);
     }
 
@@ -74,7 +78,10 @@ export class MetadataExtractionJob {
         const source = this.sources.find((s) => s.name === track.source.name);
 
         if (!source) {
-          // TODO: handle no source
+          this.events.emit(
+            'error',
+            new MetadataExtractionError(`Could not find source ${track.source.name}`, track),
+          );
           continue;
         }
 
@@ -90,6 +97,7 @@ export class MetadataExtractionJob {
           skipPostHeaders: true,
         });
 
+        // Close file stream. We don't need to read any more data than required
         void tokenizer.abort();
 
         track.metadata = {};

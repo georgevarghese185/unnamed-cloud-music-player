@@ -15,5 +15,6 @@ export interface TrackStore {
   add(track: Track[]): Promise<void>;
   update(track: Track[]): Promise<void>;
   findByIdentifiers(identifiers: Identifier[]): Promise<Track[]>;
+  findTracksWithoutMetadata(options: ListOptions): Promise<Track[]>;
   list(options: ListOptions): Promise<Track[]>;
 }
