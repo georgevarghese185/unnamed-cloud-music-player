@@ -8,7 +8,6 @@ import { EventEmitter } from 'events';
 import { parseFromTokenizer } from 'music-metadata';
 import type TypedEventEmitter from 'typed-emitter';
 import { fromWebStream } from 'strtok3';
-import { range } from 'lodash';
 import type { Source } from '../../source';
 import { getErrorMessage } from '../../error/util';
 import type { TrackStore } from '../store/track';
@@ -33,6 +32,8 @@ export type MetadataJobEvents = {
 
 export class MetadataExtractionJob {
   private events = new EventEmitter() as TypedEventEmitter<MetadataJobEvents>;
+  private canceled = false;
+  private done = false;
 
   constructor(
     private readonly tracks: TrackStore,
@@ -54,18 +55,24 @@ export class MetadataExtractionJob {
     this.events.off(event, handler);
   }
 
+  async cancel(): Promise<void> {
+    this.canceled = true;
+    if (!this.done) {
+      return new Promise<void>((resolve) => this.on('complete', resolve));
+    }
+  }
+
   private async start() {
     const tracksProducer = new Producer<Track>(10);
+    void this.findTracksToUpdate(tracksProducer);
 
-    this.findTracksToUpdate(tracksProducer)
-      .catch((e) => {
-        this.events.emit('error', new MetadataExtractionError(getErrorMessage(e)));
-      })
-      .finally(() => tracksProducer.end());
-
-    const consumers = range(5).map(
-      () => new Consumer<Track>(tracksProducer, this.updateMetadata.bind(this)),
-    );
+    const consumers = [
+      new Consumer<Track>(tracksProducer, (track) => this.updateMetadata(track)),
+      new Consumer<Track>(tracksProducer, (track) => this.updateMetadata(track)),
+      new Consumer<Track>(tracksProducer, (track) => this.updateMetadata(track)),
+      new Consumer<Track>(tracksProducer, (track) => this.updateMetadata(track)),
+      new Consumer<Track>(tracksProducer, (track) => this.updateMetadata(track)),
+    ];
 
     await Promise.all(consumers.map((c) => c.consumeAll()));
 
@@ -73,17 +80,27 @@ export class MetadataExtractionJob {
   }
 
   private async findTracksToUpdate(tracksProducer: Producer<Track>) {
-    const tracksToUpdate = await this.tracks.findTracksWithoutMetadata({
-      limit: 10000,
-      offset: 0,
-    });
+    try {
+      const tracksToUpdate = await this.tracks.findTracksWithoutMetadata({
+        limit: 10000,
+        offset: 0,
+      });
 
-    for (
-      let tracks = tracksToUpdate.splice(0, 5);
-      tracks.length > 1;
-      tracks = tracksToUpdate.splice(0, 5)
-    ) {
-      await Promise.all(tracks.map((t) => tracksProducer.push(t)));
+      for (
+        let tracks = tracksToUpdate.splice(0, 5);
+        tracks.length > 1;
+        tracks = tracksToUpdate.splice(0, 5)
+      ) {
+        if (this.canceled) {
+          return;
+        }
+        await Promise.all(tracks.map((t) => tracksProducer.push(t)));
+      }
+    } catch (e) {
+      this.events.emit('error', new MetadataExtractionError(getErrorMessage(e)));
+    } finally {
+      tracksProducer.end();
+      this.done = true;
     }
   }
 

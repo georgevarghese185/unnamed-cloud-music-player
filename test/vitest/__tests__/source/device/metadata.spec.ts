@@ -111,4 +111,22 @@ describe('Music Metadata', () => {
       ),
     );
   });
+
+  it('should cancel job', async () => {
+    const { deviceSource, library } = createDeviceLibraryFixture(fs);
+
+    // import and extract some songs
+    const importJob = library.import(deviceSource, [resolve('test/fixtures/music')]);
+    await new Promise<ImportProgress>((resolve) => importJob.on('complete', resolve));
+
+    const updateJob = library.updateAllMetadata();
+    await updateJob.cancel();
+
+    // none of the tracks should have been updated
+    const tracksWithoutMeta = await library.tracks.findTracksWithoutMetadata({
+      limit: 1000,
+      offset: 0,
+    });
+    expect(tracksWithoutMeta).toHaveLength(4);
+  });
 });

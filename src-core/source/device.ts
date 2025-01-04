@@ -39,16 +39,7 @@ export class DeviceSource implements Source<'device', string[], DeviceSourceMeta
 
   import(paths: string[]): Producer<(DeviceTrack | TrackImportError)[]> {
     const producer = new Producer<(DeviceTrack | TrackImportError)[]>(10);
-    this.importFromPaths(paths, producer)
-      .catch((e) =>
-        producer.push([
-          new TrackImportError(
-            `Unexpected error while importing tracks from paths ${paths.join(',')}: ${getErrorMessage(e)}`,
-            '',
-          ),
-        ]),
-      )
-      .finally(() => producer.end());
+    void this.importFromPaths(paths, producer);
     return producer;
   }
 
@@ -60,40 +51,51 @@ export class DeviceSource implements Source<'device', string[], DeviceSourceMeta
     sourcePaths: string[],
     producer: Producer<(DeviceTrack | TrackImportError)[]>,
   ) {
-    let paths = [...sourcePaths];
+    try {
+      let paths = [...sourcePaths];
 
-    for (let path = paths.shift(); path; path = paths.shift()) {
-      let files: File[] = [];
-      let directories: Directory[] = [];
-      const tracks: (DeviceTrack | TrackImportError)[] = [];
+      for (let path = paths.shift(); path; path = paths.shift()) {
+        let files: File[] = [];
+        let directories: Directory[] = [];
+        const tracks: (DeviceTrack | TrackImportError)[] = [];
 
-      try {
-        const file = await this.storage.getFile(path);
+        try {
+          const file = await this.storage.getFile(path);
 
-        if (file.isDir) {
-          [files, directories] = split(await this.storage.listFiles(file));
-        } else {
-          files = [file];
+          if (file.isDir) {
+            [files, directories] = split(await this.storage.listFiles(file));
+          } else {
+            files = [file];
+          }
+
+          paths = paths.concat(directories.map((d) => d.path));
+
+          files.forEach((file) => {
+            const mimeType = mime.getType(file.ext) || '';
+            if (this.player.supports(mimeType)) {
+              tracks.push(createTrack(file, mimeType));
+            } else if (sourcePaths.includes(file.path)) {
+              // the selected source file is not a supported audio file. Notify the user
+              tracks.push(new TrackImportError(UNSUPPORTED_FILE, file.path));
+            }
+          });
+        } catch (e) {
+          tracks.push(new TrackImportError(getErrorMessage(e), path));
         }
 
-        paths = paths.concat(directories.map((d) => d.path));
-
-        files.forEach((file) => {
-          const mimeType = mime.getType(file.ext) || '';
-          if (this.player.supports(mimeType)) {
-            tracks.push(createTrack(file, mimeType));
-          } else if (sourcePaths.includes(file.path)) {
-            // the selected source file is not a supported audio file. Notify the user
-            tracks.push(new TrackImportError(UNSUPPORTED_FILE, file.path));
-          }
-        });
-      } catch (e) {
-        tracks.push(new TrackImportError(getErrorMessage(e), path));
+        if (tracks.length) {
+          await producer.push(tracks);
+        }
       }
-
-      if (tracks.length) {
-        await producer.push(tracks);
-      }
+    } catch (e) {
+      await producer.push([
+        new TrackImportError(
+          `Unexpected error while importing tracks from paths ${sourcePaths.join(',')}: ${getErrorMessage(e)}`,
+          '',
+        ),
+      ]);
+    } finally {
+      producer.end();
     }
   }
 }

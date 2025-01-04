@@ -6,7 +6,7 @@
 
 import EventEmitter from 'events';
 import type TypedEventEmitter from 'typed-emitter';
-import { differenceWith, range } from 'lodash';
+import { differenceWith } from 'lodash';
 import { getErrorMessage } from '../../error/util';
 import { eqIdentifiers, getIdentifiers, type Track } from '../track';
 import type { TrackStore } from '../store/track';
@@ -67,7 +67,13 @@ export class ImportJob<K extends string = string, M = unknown> {
   }
 
   private async start() {
-    const consumers = range(5).map(() => new Consumer(this.trackProducer, this.import.bind(this)));
+    const consumers = [
+      new Consumer(this.trackProducer, (tracks) => this.import(tracks)),
+      new Consumer(this.trackProducer, (tracks) => this.import(tracks)),
+      new Consumer(this.trackProducer, (tracks) => this.import(tracks)),
+      new Consumer(this.trackProducer, (tracks) => this.import(tracks)),
+      new Consumer(this.trackProducer, (tracks) => this.import(tracks)),
+    ];
     await Promise.all(consumers.map((c) => c.consumeAll()));
     this.onComplete();
   }
