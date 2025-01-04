@@ -10,7 +10,7 @@
           :icon="playerState === 'playing' ? 'pause' : 'arrow_right'"
           @click="togglePlayState"
         />
-        <p>{{ currentlyPlaying.name }}</p>
+        <p>{{ currentlyPlaying.file.name }}</p>
       </div>
     </q-card-section>
   </q-card>

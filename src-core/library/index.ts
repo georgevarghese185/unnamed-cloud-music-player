@@ -5,9 +5,19 @@
  */
 
 export { Library } from './library';
-export type { ImportJob, ImportJobEvents, ImportProgress } from './import-job';
+export {
+  ImportJob,
+  type ImportJobEvents,
+  type ImportProgress,
+  TrackImportError,
+} from './job/import-job';
+export {
+  MetadataExtractionError,
+  MetadataExtractionJob,
+  type MetadataJobEvents,
+} from './job/metadata-extraction-job';
 export type { LibraryOptions } from './library';
-export type { Track, Identifier } from './track';
+export type { Track, Identifier, Metadata } from './track';
 export { Player } from './player';
 export type { PlayerEvents } from './player';
 export * from './errors';

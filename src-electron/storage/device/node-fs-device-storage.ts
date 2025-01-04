@@ -21,6 +21,8 @@ export type Fs = {
 };
 
 export class NodeFsDeviceStorage implements DeviceStorage {
+  private statCache = new Map<string, nodeFs.Stats>();
+
   constructor(protected fs: Fs = nodeFs) {}
 
   async listFiles(dir: Directory): Promise<DeviceFile[]> {
@@ -40,6 +42,7 @@ export class NodeFsDeviceStorage implements DeviceStorage {
         ext: extname(path),
         isDir: false,
         name: basename(path),
+        size: await this.fileSize(path),
         path,
       } as File;
     }
@@ -84,7 +87,32 @@ export class NodeFsDeviceStorage implements DeviceStorage {
   }
 
   private async isDirectory(path: string) {
-    const fileStat = await promisify(this.fs.stat.bind(this.fs))(path);
+    const fileStat = await this.stat(path);
     return fileStat.isDirectory();
+  }
+
+  private async fileSize(path: string) {
+    const fileStat = await this.stat(path);
+    return fileStat.size;
+  }
+
+  private async stat(path: string) {
+    const cached = this.statCache.get(path);
+    if (cached) {
+      return cached;
+    }
+
+    const stat = await promisify(this.fs.stat.bind(this.fs))(path);
+
+    if (this.statCache.size > 10) {
+      const firstKey = this.statCache.keys().next().value;
+      if (firstKey) {
+        this.statCache.delete(firstKey);
+      }
+    }
+
+    this.statCache.set(path, stat);
+
+    return stat;
   }
 }

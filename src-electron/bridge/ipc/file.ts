@@ -98,7 +98,7 @@ export function setupFileIpc(window: BaseWindow, storage: NodeFsDeviceStorage) {
         if (!cancel) {
           renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:end`);
         } else {
-          void stream.cancel();
+          void reader.cancel();
         }
       } catch (e) {
         renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:error`, e);

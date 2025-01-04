@@ -12,10 +12,17 @@ import {
   importJobInjectionKey,
   importProgressInjectionKey,
   libraryInjectionKey,
+  metadataJobInjectionKey,
   tracksInjectionKey,
 } from './use-library-provider';
-import type { TrackImportError } from 'app/src-core/library/track-importer';
-import type { ImportJob, ImportProgress, Library, Track } from 'app/src-core/library';
+import type {
+  ImportJob,
+  ImportProgress,
+  Library,
+  MetadataExtractionError,
+  Track,
+  TrackImportError,
+} from 'app/src-core/library';
 import type { Source } from 'app/src-core/source';
 import type { PlaybackError } from 'app/src-core/audio-player';
 
@@ -32,6 +39,7 @@ function injectLibrary(): ShallowRef<Library> {
 export default function useLibrary() {
   const library = injectLibrary();
   const importJob = inject(importJobInjectionKey, ref(null));
+  const metadataJob = inject(metadataJobInjectionKey, ref(null));
   const importProgress = inject(importProgressInjectionKey, ref(null));
   const importErrors = inject(importErrorsInjectionKey, ref([]));
   const { tracks, setTracks } = inject(tracksInjectionKey, {
@@ -52,12 +60,21 @@ export default function useLibrary() {
   function onImportComplete(progress: ImportProgress) {
     importProgress.value = progress;
     void findTracks();
+    void updateMetadata();
   }
 
   function onImport(job: ImportJob) {
     job.on('import', onImportProgress);
     job.on('importError', onImportErrors);
     job.on('complete', onImportComplete);
+  }
+
+  function onMetadataComplete() {
+    metadataJob.value = null;
+  }
+
+  function onMetadataError(e: MetadataExtractionError) {
+    Notify.create({ type: 'error', message: e.message });
   }
 
   function onPlayerStateChange() {
@@ -86,6 +103,8 @@ export default function useLibrary() {
     importJob.value?.off('import', onImportProgress);
     importJob.value?.off('importError', onImportErrors);
     importJob.value?.off('complete', onImportComplete);
+    metadataJob.value?.off('error', onMetadataError);
+    metadataJob.value?.off('complete', onMetadataComplete);
     library.value.player.off('play', onPlayerStateChange);
     library.value.player.off('pause', onPlayerStateChange);
     library.value.player.off('error', onPlayerError);
@@ -106,6 +125,16 @@ export default function useLibrary() {
 
   async function findTracks() {
     setTracks(await library.value.tracks.list({ limit: 1000000, offset: 0 }));
+  }
+
+  async function updateMetadata() {
+    if (metadataJob.value) {
+      await metadataJob.value.cancel();
+    }
+
+    metadataJob.value = library.value.updateAllMetadata();
+    metadataJob.value.on('error', onMetadataError);
+    metadataJob.value.on('complete', onMetadataComplete);
   }
 
   return {

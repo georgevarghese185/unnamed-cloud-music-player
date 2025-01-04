@@ -3,10 +3,10 @@
 
 import { basename, resolve, extname } from 'path';
 import { expect } from 'vitest';
+import type { Metadata } from 'app/src-core/library';
 
-export const deviceTrackExpectation = (path: string) => ({
+export const deviceTrackExpectation = (path: string, fileSize: number, metadata?: Metadata) => ({
   id: expect.any(Number),
-  name: basename(path),
   identifiers: [
     {
       name: 'file_path',
@@ -23,10 +23,16 @@ export const deviceTrackExpectation = (path: string) => ({
           : extname(path) === '.flac'
             ? 'audio/flac'
             : '',
+  file: {
+    name: basename(path),
+    extension: extname(path),
+    size: fileSize,
+  },
   source: {
     name: 'device',
     meta: {
       filePath: resolve(path),
     },
   },
+  metadata,
 });

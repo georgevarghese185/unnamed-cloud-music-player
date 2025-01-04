@@ -7,11 +7,20 @@
 import type { InjectionKey, Ref, ShallowRef } from 'vue';
 import { provide, ref, shallowRef } from 'vue';
 import createLibrary from './library-factory';
-import type { Library, ImportJob, ImportProgress, Track } from 'app/src-core/library';
-import type { TrackImportError } from 'app/src-core/library/track-importer';
+import type {
+  Library,
+  ImportJob,
+  ImportProgress,
+  Track,
+  TrackImportError,
+  MetadataExtractionJob,
+} from 'app/src-core/library';
 
 export const libraryInjectionKey = Symbol() as InjectionKey<ShallowRef<Library>>;
 export const importJobInjectionKey = Symbol() as InjectionKey<ShallowRef<ImportJob | null>>;
+export const metadataJobInjectionKey = Symbol() as InjectionKey<
+  ShallowRef<MetadataExtractionJob | null>
+>;
 export const importProgressInjectionKey = Symbol() as InjectionKey<Ref<ImportProgress | null>>;
 export const importErrorsInjectionKey = Symbol() as InjectionKey<Ref<TrackImportError[]>>;
 export const tracksInjectionKey = Symbol() as InjectionKey<{
@@ -22,12 +31,14 @@ export const tracksInjectionKey = Symbol() as InjectionKey<{
 export default function useLibraryProvider() {
   const library = shallowRef<Library>(createLibrary());
   const importJob = shallowRef<ImportJob | null>(null);
+  const metadataJob = shallowRef<MetadataExtractionJob | null>(library.value.updateAllMetadata());
   const importProgress = ref<ImportProgress | null>(null);
   const importErrors = ref<TrackImportError[]>([]);
   const tracks = shallowRef<Track[]>([]);
 
   provide(libraryInjectionKey, library);
   provide(importJobInjectionKey, importJob);
+  provide(metadataJob, metadataJob);
   provide(importProgressInjectionKey, importProgress);
   provide(importErrorsInjectionKey, importErrors);
   provide(tracksInjectionKey, {

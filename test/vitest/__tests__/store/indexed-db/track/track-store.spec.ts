@@ -6,7 +6,6 @@ import { range } from 'lodash';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { deviceTrackExpectation } from '../../../expectation/track';
 import { createTracks } from './fixture';
-import { identifiersExpectation } from './expectation';
 import { MockLibraryDatabase } from 'app/test/vitest/mock/mock-library-database';
 import { IndexedDbTrackStore } from 'src/library/store/indexed-db/track';
 import type { LibraryDatabase } from 'src/library/store/indexed-db/db';
@@ -30,11 +29,9 @@ describe('IndexedDB track store', () => {
 
     await store.add(tracks);
 
-    const insertedTracks = await db.tracks.toArray();
-    const insertedIdentifiers = await db.identifiers.toArray();
+    const insertedTracks = await store.list({ limit: 1000, offset: 0 });
 
-    expect(insertedTracks).toEqual(songPaths.map(deviceTrackExpectation));
-    expect(insertedIdentifiers).toEqual(identifiersExpectation(insertedTracks));
+    expect(insertedTracks).toEqual(songPaths.map((t) => deviceTrackExpectation(t, 10)));
   });
 
   it('should find tracks by identifiers', async () => {
@@ -54,7 +51,7 @@ describe('IndexedDB track store', () => {
     ]);
 
     expect(foundTracks).toEqual(
-      tracksToFind.map((track) => deviceTrackExpectation(track.source.meta.filePath)),
+      tracksToFind.map((track) => deviceTrackExpectation(track.source.meta.filePath, 10)),
     );
   });
 
@@ -66,13 +63,13 @@ describe('IndexedDB track store', () => {
     let list = await store.list({ limit: 5, offset: 0 });
 
     expect(list).toEqual(
-      tracks.slice(0, 5).map((track) => deviceTrackExpectation(track.source.meta.filePath)),
+      tracks.slice(0, 5).map((track) => deviceTrackExpectation(track.source.meta.filePath, 10)),
     );
 
     list = await store.list({ limit: 4, offset: 3 });
 
     expect(list).toEqual(
-      tracks.slice(3, 7).map((track) => deviceTrackExpectation(track.source.meta.filePath)),
+      tracks.slice(3, 7).map((track) => deviceTrackExpectation(track.source.meta.filePath, 10)),
     );
   });
 });

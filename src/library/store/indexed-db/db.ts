@@ -10,7 +10,9 @@ import type { Track, Identifier } from 'app/src-core/library';
 
 const DB_NAME = 'Library';
 
-export type ITrack = Track;
+export interface ITrack extends Track {
+  hasMetadata: 0 | 1;
+}
 
 export interface IIdentifier extends Identifier {
   id: number;
@@ -28,6 +30,19 @@ export class LibraryDatabase extends DexieJs {
       tracks: '++id',
       identifiers: '++id, [name+value], trackId',
     });
+
+    this.version(2)
+      .stores({
+        tracks: '++id, hasMetadata',
+      })
+      .upgrade((tx) => {
+        return tx
+          .table<ITrack, 'id'>('tracks')
+          .toCollection()
+          .modify((track) => {
+            track.hasMetadata = track.metadata ? 1 : 0;
+          });
+      });
   }
 
   // methods for inserting entities without an id so that IndexedDB can autogenerate an id

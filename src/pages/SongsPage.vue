@@ -8,7 +8,7 @@
       <q-item :key="item.id" dense class="no-border">
         <div class="row items-center q-mt-md cursor-pointer col-grow" @click="play(item)">
           <img class="album-art" />
-          <p class="q-ma-none q-ml-sm text-center">{{ item.name }}</p>
+          <p class="q-ma-none q-ml-sm text-center">{{ item.file.name }}</p>
         </div>
       </q-item>
     </q-virtual-scroll>
