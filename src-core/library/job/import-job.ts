@@ -6,17 +6,27 @@
 
 import EventEmitter from 'events';
 import type TypedEventEmitter from 'typed-emitter';
-import { differenceWith } from 'lodash';
+import { differenceWith, range } from 'lodash';
 import { getErrorMessage } from '../../error/util';
-import { type TrackImporter, TrackImportError } from '../track-importer';
 import { eqIdentifiers, getIdentifiers, type Track } from '../track';
 import type { TrackStore } from '../store/track';
+import type { Producer } from 'app/src-core/util/producer-consumer';
+import { Consumer } from 'app/src-core/util/producer-consumer';
 
 export type ImportProgress = {
   completed: boolean;
   imported: number;
   errors: TrackImportError[];
 };
+
+export class TrackImportError extends Error {
+  constructor(
+    public reason: string,
+    public target: string,
+  ) {
+    super(`Failed to import ${target}: ${reason}`);
+  }
+}
 
 export type ImportJobEvents = {
   complete: (progress: ImportProgress) => void;
@@ -33,7 +43,7 @@ export class ImportJob<K extends string = string, M = unknown> {
   };
 
   constructor(
-    private readonly importer: TrackImporter<K, M>,
+    private readonly trackProducer: Producer<(Track<K, M> | TrackImportError)[]>,
     private readonly tracks: TrackStore,
   ) {
     this.start().catch((e) => {
@@ -57,27 +67,26 @@ export class ImportJob<K extends string = string, M = unknown> {
   }
 
   private async start() {
-    let imports: (Track<K, M> | TrackImportError)[] | null;
-    const trackStore = this.tracks;
+    const consumers = range(5).map(() => new Consumer(this.trackProducer, this.import.bind(this)));
+    await Promise.all(consumers.map((c) => c.consumeAll()));
+    this.onComplete();
+  }
 
-    while ((imports = await this.importer.next())) {
-      const [tracks, errors] = split(imports);
+  private async import(tracksAndErrors: (Track<K, M> | TrackImportError)[]) {
+    const [tracks, errors] = split(tracksAndErrors);
 
-      if (tracks.length) {
-        const newTracks = await this.findNewTracks(trackStore, tracks);
+    if (tracks.length) {
+      const newTracks = await this.findNewTracks(this.tracks, tracks);
 
-        if (newTracks.length) {
-          await trackStore.add(newTracks);
-          this.onImport(newTracks);
-        }
-      }
-
-      if (errors.length) {
-        this.onImportError(errors);
+      if (newTracks.length) {
+        await this.tracks.add(newTracks);
+        this.onImport(newTracks);
       }
     }
 
-    this.onComplete();
+    if (errors.length) {
+      this.onImportError(errors);
+    }
   }
 
   private onComplete() {

@@ -42,7 +42,7 @@ export class Library {
     return new ImportJob(importer, this.tracks);
   }
 
-  updateAllMetadata(batchSize?: number) {
-    return new MetadataExtractionJob(this.tracks, this.sources, batchSize);
+  updateAllMetadata() {
+    return new MetadataExtractionJob(this.tracks, this.sources);
   }
 }

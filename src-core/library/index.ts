@@ -5,7 +5,12 @@
  */
 
 export { Library } from './library';
-export { ImportJob, type ImportJobEvents, type ImportProgress } from './job/import-job';
+export {
+  ImportJob,
+  type ImportJobEvents,
+  type ImportProgress,
+  TrackImportError,
+} from './job/import-job';
 export {
   MetadataExtractionError,
   MetadataExtractionJob,

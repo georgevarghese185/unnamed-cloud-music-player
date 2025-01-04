@@ -7,8 +7,13 @@
 import type { InjectionKey, Ref, ShallowRef } from 'vue';
 import { provide, ref, shallowRef } from 'vue';
 import createLibrary from './library-factory';
-import type { Library, ImportJob, ImportProgress, Track } from 'app/src-core/library';
-import type { TrackImportError } from 'app/src-core/library/track-importer';
+import type {
+  Library,
+  ImportJob,
+  ImportProgress,
+  Track,
+  TrackImportError,
+} from 'app/src-core/library';
 
 export const libraryInjectionKey = Symbol() as InjectionKey<ShallowRef<Library>>;
 export const importJobInjectionKey = Symbol() as InjectionKey<ShallowRef<ImportJob | null>>;

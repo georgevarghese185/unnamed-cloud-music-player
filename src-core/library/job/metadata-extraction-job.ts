@@ -4,14 +4,16 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { EventEmitter } from 'stream';
+import { EventEmitter } from 'events';
 import { parseFromTokenizer } from 'music-metadata';
 import type TypedEventEmitter from 'typed-emitter';
 import { fromWebStream } from 'strtok3';
+import { range } from 'lodash';
 import type { Source } from '../../source';
 import { getErrorMessage } from '../../error/util';
 import type { TrackStore } from '../store/track';
 import type { Track } from '../track';
+import { Consumer, Producer } from 'app/src-core/util/producer-consumer';
 
 export class MetadataExtractionError extends Error {
   constructor(
@@ -35,7 +37,6 @@ export class MetadataExtractionJob {
   constructor(
     private readonly tracks: TrackStore,
     private readonly sources: Source<string, unknown, unknown>[],
-    private readonly batchSize = 100,
   ) {
     this.start().catch((e) => {
       this.events.emit('error', new MetadataExtractionError(getErrorMessage(e)));
@@ -54,71 +55,78 @@ export class MetadataExtractionJob {
   }
 
   private async start() {
-    let tracks: Track[] = [];
+    const tracksProducer = new Producer<Track>(10);
 
-    const nextTracks = async () => {
-      const tracks = await this.tracks.findTracksWithoutMetadata({
-        limit: this.batchSize,
-        offset: 0,
-      });
-      return tracks;
-    };
+    this.findTracksToUpdate(tracksProducer)
+      .catch((e) => {
+        this.events.emit('error', new MetadataExtractionError(getErrorMessage(e)));
+      })
+      .finally(() => tracksProducer.end());
 
-    while ((tracks = await nextTracks()).length > 0) {
-      await this.updateMetadata(tracks);
-    }
+    const consumers = range(5).map(
+      () => new Consumer<Track>(tracksProducer, this.updateMetadata.bind(this)),
+    );
+
+    await Promise.all(consumers.map((c) => c.consumeAll()));
 
     this.events.emit('complete');
   }
 
-  private async updateMetadata(tracks: Track[]) {
-    // TODO: extract multiple in parallel
-    for (const track of tracks) {
-      try {
-        const source = this.sources.find((s) => s.name === track.source.name);
+  private async findTracksToUpdate(tracksProducer: Producer<Track>) {
+    const tracks = await this.tracks.findTracksWithoutMetadata({
+      limit: 10000,
+      offset: 0,
+    });
 
-        if (!source) {
-          this.events.emit(
-            'error',
-            new MetadataExtractionError(`Could not find source ${track.source.name}`, track),
-          );
-          continue;
-        }
+    await Promise.all(tracks.map((t) => tracksProducer.push(t)));
+  }
 
-        const stream = source.stream(track);
-        const tokenizer = fromWebStream(stream, {
-          fileInfo: { mimeType: track.mime, path: track.file.name, size: track.file.size },
-        });
+  private async updateMetadata(track: Track) {
+    try {
+      const source = this.sources.find((s) => s.name === track.source.name);
 
-        const meta = await parseFromTokenizer(tokenizer, {
-          skipCovers: true,
-          duration: false,
-          includeChapters: false,
-          skipPostHeaders: true,
-        });
+      if (!source) {
+        this.events.emit(
+          'error',
+          new MetadataExtractionError(`Could not find source ${track.source.name}`, track),
+        );
 
-        // Close file stream. We don't need to read any more data than required
-        void tokenizer.abort();
-
-        track.metadata = {};
-
-        if (meta.common.title) {
-          track.metadata.title = meta.common.title;
-        }
-        if (meta.common.artist) {
-          track.metadata.artist = meta.common.artist;
-        }
-        if (meta.common.album) {
-          track.metadata.album = meta.common.album;
-        }
-        if (meta.format.duration) {
-          track.metadata.duration = meta.format.duration;
-        }
-      } catch (e) {
-        this.events.emit('error', new MetadataExtractionError(getErrorMessage(e), track));
+        return;
       }
+
+      const stream = source.stream(track);
+      const tokenizer = fromWebStream(stream, {
+        fileInfo: { mimeType: track.mime, path: track.file.name, size: track.file.size },
+      });
+
+      const meta = await parseFromTokenizer(tokenizer, {
+        skipCovers: true,
+        duration: false,
+        includeChapters: false,
+        skipPostHeaders: true,
+      });
+
+      // Close file stream. We don't need to read any more data than required
+      void tokenizer.abort();
+
+      track.metadata = {};
+
+      if (meta.common.title) {
+        track.metadata.title = meta.common.title;
+      }
+      if (meta.common.artist) {
+        track.metadata.artist = meta.common.artist;
+      }
+      if (meta.common.album) {
+        track.metadata.album = meta.common.album;
+      }
+      if (meta.format.duration) {
+        track.metadata.duration = meta.format.duration;
+      }
+    } catch (e) {
+      this.events.emit('error', new MetadataExtractionError(getErrorMessage(e), track));
     }
 
-    await this.tracks.update(tracks);
+    await this.tracks.update([track]);
   }
 }

@@ -4,6 +4,7 @@
 import { resolve } from 'path';
 import * as fs from 'fs';
 import { describe, expect, it, vi } from 'vitest';
+import { sortBy } from 'lodash';
 import { deviceTrackExpectation } from '../../expectation/track';
 import { createDeviceLibraryFixture } from './fixture';
 import type { ImportProgress, Metadata } from 'app/src-core/library';
@@ -15,7 +16,7 @@ describe('Music Metadata', () => {
     const importJob = library.import(deviceSource, [resolve('test/fixtures/music')]);
     await new Promise<ImportProgress>((resolve) => importJob.on('complete', resolve));
 
-    const updateJob = library.updateAllMetadata(2);
+    const updateJob = library.updateAllMetadata();
     await new Promise<void>((resolve) => updateJob.on('complete', resolve));
 
     const tracks = await library.tracks.list({ limit: 10000, offset: 0 });
@@ -82,11 +83,12 @@ describe('Music Metadata', () => {
 
     const updateTracksSpy = vi.spyOn(trackStore, 'update');
 
-    updateJob = library.updateAllMetadata(2);
+    updateJob = library.updateAllMetadata();
     await new Promise<void>((resolve) => updateJob.on('complete', resolve));
 
     // only the new songs should have been updated
-    expect(updateTracksSpy).toHaveBeenCalledWith(
+    const updatedTracks = updateTracksSpy.mock.calls.flatMap(([tracks]) => tracks);
+    expect(sortBy(updatedTracks, (t) => t.file.name)).toEqual(
       [
         {
           path: 'test/fixtures/music/Goblin_Tinker_Soldier_Spy.mp3',

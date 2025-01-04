@@ -7,9 +7,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { memfs } from 'memfs';
 import { deviceTrackExpectation } from '../../expectation/track';
 import { createDeviceLibraryFixture } from './fixture';
-import type { ImportProgress } from 'app/src-core/library';
+import { TrackImportError, type ImportProgress } from 'app/src-core/library';
 import type { Track } from 'app/src-core/library/track';
-import { TrackImportError } from 'app/src-core/library/track-importer';
 import type { Directory } from 'app/src-core/storage/device';
 
 describe('Import from device source', () => {

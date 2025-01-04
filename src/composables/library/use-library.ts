@@ -14,8 +14,13 @@ import {
   libraryInjectionKey,
   tracksInjectionKey,
 } from './use-library-provider';
-import type { TrackImportError } from 'app/src-core/library/track-importer';
-import type { ImportJob, ImportProgress, Library, Track } from 'app/src-core/library';
+import type {
+  ImportJob,
+  ImportProgress,
+  Library,
+  Track,
+  TrackImportError,
+} from 'app/src-core/library';
 import type { Source } from 'app/src-core/source';
 import type { PlaybackError } from 'app/src-core/audio-player';
 
