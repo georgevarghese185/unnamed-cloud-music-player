@@ -59,7 +59,7 @@ export default function useLibrary() {
   }
 
   function onMetadataError(e: MetadataExtractionError) {
-    Notify.create({ type: 'error', message: e.message });
+    Notify.create({ type: 'negative', message: e.message });
   }
 
   onMounted(() => {

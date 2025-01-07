@@ -23,37 +23,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { usePlayer, useTracks } from 'src/composables/library';
+import { usePlayer, useTrackInfo } from 'src/composables/library';
 
-const { currentlyPlaying, state, pause, resume } = usePlayer();
-const { getArtwork } = useTracks();
-
-const title = computed(
-  () => currentlyPlaying.value?.metadata?.title || currentlyPlaying.value?.file.name,
-);
-const artist = computed(() => currentlyPlaying.value?.metadata?.artist || 'Unknown Artist');
-const album = computed(() => currentlyPlaying.value?.metadata?.album || 'Unknown Album');
-const artworkUrl = ref<string | null>(null);
-
-watch(currentlyPlaying, async () => {
-  if (artworkUrl.value) {
-    URL.revokeObjectURL(artworkUrl.value);
-    artworkUrl.value = null;
-  }
-
-  if (!currentlyPlaying.value) {
-    return;
-  }
-
-  const artworkData = await getArtwork(currentlyPlaying.value);
-
-  if (!artworkData) {
-    return;
-  }
-
-  artworkUrl.value = URL.createObjectURL(new Blob([artworkData]));
-});
+const { pause, resume, currentlyPlaying, state } = usePlayer();
+const { album, artist, artworkUrl, title } = useTrackInfo(currentlyPlaying);
 
 function togglePlayState() {
   if (state.value === 'playing') {

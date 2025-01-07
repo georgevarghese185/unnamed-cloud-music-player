@@ -26,16 +26,22 @@ export default function () {
     });
   }
 
+  function onTrackMetadataUpdated() {
+    currentlyPlaying.value = library.value.player.currentlyPlaying;
+  }
+
   onMounted(() => {
     library.value.player.on('play', onPlayerStateChange);
     library.value.player.on('pause', onPlayerStateChange);
     library.value.player.on('error', onPlayerError);
+    library.value.player.on('metadataUpdate', onTrackMetadataUpdated);
   });
 
   onUnmounted(() => {
     library.value.player.off('play', onPlayerStateChange);
     library.value.player.off('pause', onPlayerStateChange);
     library.value.player.off('error', onPlayerError);
+    library.value.player.off('metadataUpdate', onTrackMetadataUpdated);
   });
 
   return {

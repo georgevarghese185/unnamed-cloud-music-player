@@ -8,3 +8,4 @@ export { default as useImport } from './use-import';
 export { default as useLibraryProvider } from './use-library-provider';
 export { default as usePlayer } from './use-player';
 export { default as useTracks } from './use-tracks';
+export { default as useTrackInfo } from './use-track-info';
