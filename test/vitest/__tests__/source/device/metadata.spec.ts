@@ -5,13 +5,16 @@ import { resolve } from 'path';
 import * as fs from 'fs';
 import { describe, expect, it, vi } from 'vitest';
 import { sortBy } from 'lodash';
+import { fromStream } from 'strtok3';
+import { parseFromTokenizer } from 'music-metadata';
 import { deviceTrackExpectation } from '../../expectation/track';
+import { hashUint8Array } from '../../util/hash';
 import { createDeviceLibraryFixture } from './fixture';
 import type { ImportProgress, Metadata } from 'app/src-core/library';
 
 describe('Music Metadata', () => {
   it('should extract metadata from imported songs', async () => {
-    const { deviceSource, library } = createDeviceLibraryFixture(fs);
+    const { deviceSource, library, trackStore } = createDeviceLibraryFixture(fs);
 
     const importJob = library.import(deviceSource, [resolve('test/fixtures/music')]);
     await new Promise<ImportProgress>((resolve) => importJob.on('complete', resolve));
@@ -60,6 +63,30 @@ describe('Music Metadata', () => {
         } as Metadata),
       ),
     );
+
+    const artwork = await Promise.all(tracks.map((t) => trackStore.getArtwork(t)));
+
+    const actualArtwork = await Promise.all(
+      songsFixture.map(async ({ path }) => {
+        const tokenizer = await fromStream(fs.createReadStream(resolve(path)), {
+          fileInfo: {
+            mimeType: 'audio/mpeg',
+            path,
+            size: fs.statSync(path).size,
+          },
+        });
+        const meta = await parseFromTokenizer(tokenizer, { skipPostHeaders: true });
+        void tokenizer.abort();
+        const image = meta.common.picture?.[0]?.data;
+        return image ? image : null;
+      }),
+    );
+
+    const hashArtwork = (art: Uint8Array | null) => {
+      return art ? hashUint8Array(art) : null;
+    };
+
+    expect(artwork.map(hashArtwork)).toEqual(actualArtwork.map(hashArtwork));
   });
 
   it('should not extract metadata from songs that have already been extracted', async () => {

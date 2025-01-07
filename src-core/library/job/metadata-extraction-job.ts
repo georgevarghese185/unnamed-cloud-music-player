@@ -123,7 +123,7 @@ export class MetadataExtractionJob {
       });
 
       const meta = await parseFromTokenizer(tokenizer, {
-        skipCovers: true,
+        skipCovers: false,
         duration: false,
         includeChapters: false,
         skipPostHeaders: true,
@@ -146,10 +146,16 @@ export class MetadataExtractionJob {
       if (meta.format.duration) {
         track.metadata.duration = meta.format.duration;
       }
+
+      const updates = [this.tracks.update([track])];
+
+      if (meta.common.picture?.[0]) {
+        updates.push(this.tracks.storeArtwork(track, meta.common.picture[0].data));
+      }
+
+      await Promise.all(updates);
     } catch (e) {
       this.events.emit('error', new MetadataExtractionError(getErrorMessage(e), track));
     }
-
-    await this.tracks.update([track]);
   }
 }
