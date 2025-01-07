@@ -6,29 +6,42 @@
   <q-card v-if="currentlyPlaying" class="absolute-bottom q-mx-lg">
     <q-card-section>
       <div class="row">
+        <img v-if="artworkUrl" class="album-art col-auto" :src="artworkUrl" />
+        <img v-else class="album-art col-auto" />
+        <div class="q-ml-lg col column">
+          <p class="row q-ma-none">{{ artist }} - {{ title }}</p>
+          <p class="row q-ma-none">{{ album }}</p>
+        </div>
         <q-btn
-          :icon="playerState === 'playing' ? 'pause' : 'arrow_right'"
+          class="col-auto"
+          :icon="state === 'playing' ? 'pause' : 'arrow_right'"
           @click="togglePlayState"
         />
-        <p>{{ currentlyPlaying.file.name }}</p>
       </div>
     </q-card-section>
   </q-card>
 </template>
 
 <script setup lang="ts">
-import useLibrary from 'src/composables/library/use-library';
+import { usePlayer, useTrackInfo } from 'src/composables/library';
 
-const library = useLibrary();
-
-const currentlyPlaying = library.player.currentlyPlaying;
-const playerState = library.player.state;
+const { pause, resume, currentlyPlaying, state } = usePlayer();
+const { album, artist, artworkUrl, title } = useTrackInfo(currentlyPlaying);
 
 function togglePlayState() {
-  if (library.player.state.value === 'playing') {
-    library.player.pause();
+  if (state.value === 'playing') {
+    pause();
   } else {
-    library.player.resume();
+    resume();
   }
 }
 </script>
+
+<style lang="css" scoped>
+.album-art {
+  background: #c4c4c4;
+  width: 52px;
+  height: 52px;
+  border-radius: 5px;
+}
+</style>

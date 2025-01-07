@@ -10,10 +10,12 @@ import type { AudioPlayer, PlaybackError } from '../audio-player';
 import type { Source } from '../source';
 import { UnsupportedSourceError } from './errors';
 import type { Track } from './track';
+import globalEvents from './global-events';
 
 export type PlayerEvents = {
   play: () => void;
   pause: () => void;
+  metadataUpdate: () => void;
   error: (e: PlaybackError) => void;
 };
 
@@ -57,7 +59,7 @@ export class Player {
     }
 
     const stream = source.stream(track);
-    this.currentlyPlaying = track;
+    this.setCurrentlyPlaying(track);
     this.audioPlayer.play({ mimeType: track.mime, stream });
   }
 
@@ -83,6 +85,26 @@ export class Player {
 
   removeAllListeners<E extends keyof PlayerEvents>(event: E) {
     this.events.removeAllListeners(event);
+  }
+
+  private setCurrentlyPlaying(track: Track) {
+    if (this.currentlyPlaying) {
+      globalEvents.off(
+        `trackMetadataUpdate:${track.id}`,
+        this.onCurrentTrackMetadataUpdate.bind(this),
+      );
+    }
+
+    this.currentlyPlaying = track;
+    globalEvents.on(
+      `trackMetadataUpdate:${track.id}`,
+      this.onCurrentTrackMetadataUpdate.bind(this),
+    );
+  }
+
+  private onCurrentTrackMetadataUpdate(track: Track) {
+    this.currentlyPlaying = track;
+    this.events.emit('metadataUpdate');
   }
 
   private getSource<K extends string, I, M, S extends Source<K, I, M>>(

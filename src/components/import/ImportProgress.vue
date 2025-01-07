@@ -34,14 +34,11 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { useLibrary } from 'src/composables/library';
+import { useImport } from 'src/composables/library';
 
 const { t } = useI18n();
-const library = useLibrary();
-
+const { importProgress, importErrors } = useImport();
 const model = defineModel<boolean>({ default: true });
-const importProgress = library.import.progress;
-const importErrors = library.import.errors;
 </script>
 
 <style lang="css" scoped>

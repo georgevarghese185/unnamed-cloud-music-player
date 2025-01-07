@@ -10,7 +10,7 @@ import { parseFromTokenizer } from 'music-metadata';
 import { deviceTrackExpectation } from '../../expectation/track';
 import { hashUint8Array } from '../../util/hash';
 import { createDeviceLibraryFixture } from './fixture';
-import type { ImportProgress, Metadata } from 'app/src-core/library';
+import { type Track, globalEvents, type ImportProgress, type Metadata } from 'app/src-core/library';
 
 describe('Music Metadata', () => {
   it('should extract metadata from imported songs', async () => {
@@ -18,11 +18,17 @@ describe('Music Metadata', () => {
 
     const importJob = library.import(deviceSource, [resolve('test/fixtures/music')]);
     await new Promise<ImportProgress>((resolve) => importJob.on('complete', resolve));
+    let tracks = await library.tracks.list({ limit: 10000, offset: 0 });
+
+    const onTrackMetadataUpdate = vi.fn((_track: Track) => {});
+    tracks.forEach((track) =>
+      globalEvents.on(`trackMetadataUpdate:${track.id}`, onTrackMetadataUpdate),
+    );
 
     const updateJob = library.updateAllMetadata();
     await new Promise<void>((resolve) => updateJob.on('complete', resolve));
 
-    const tracks = await library.tracks.list({ limit: 10000, offset: 0 });
+    tracks = await library.tracks.list({ limit: 10000, offset: 0 });
 
     const songsFixture = [
       {
@@ -63,6 +69,8 @@ describe('Music Metadata', () => {
         } as Metadata),
       ),
     );
+
+    expect(sortBy(onTrackMetadataUpdate.mock.calls.flat(), 'id')).toEqual(sortBy(tracks, 'id'));
 
     const artwork = await Promise.all(tracks.map((t) => trackStore.getArtwork(t)));
 

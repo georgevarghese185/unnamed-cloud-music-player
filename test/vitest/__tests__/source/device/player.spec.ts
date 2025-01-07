@@ -120,4 +120,44 @@ describe('Player + device source', () => {
     expect(onPlay).toHaveBeenCalled();
     expect(library.player.state).toEqual('playing');
   });
+
+  it('should update track info of currently playing track when metadata has been updated', async () => {
+    const { deviceSource, library, audioPlayer } = createDeviceLibraryFixture(nodeFs);
+    const onMetadataUpdate = vi.fn();
+    library.player.on('metadataUpdate', onMetadataUpdate);
+
+    // import one song
+    const job = library.import(deviceSource, [
+      resolve('test/fixtures/music/Kevin MacLeod - I Got a Stick Arr Bryan Teoh.mp3'),
+    ]);
+    await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
+    const [track] = await library.tracks.list({ limit: 1, offset: 0 });
+
+    if (!track) {
+      fail('Track not found');
+    }
+
+    // start playing that song
+    await new Promise<void>((resolve) => {
+      vi.spyOn(audioPlayer, 'play').mockImplementationOnce(() => {
+        audioPlayer.emit('started');
+        audioPlayer.emit('buffering');
+        audioPlayer.emit('playing');
+        resolve();
+      });
+
+      library.player.play(track);
+    });
+
+    // initially, currently playing track should have no metadata (we didn't fetch it yet)
+    expect(library.player.currentlyPlaying?.metadata).toBeUndefined();
+
+    // update all tracks metadata
+    const updateJob = library.updateAllMetadata();
+    await new Promise<void>((resolve) => updateJob.on('complete', resolve));
+
+    // currently playing track should have its metadata updated by now
+    expect(library.player.currentlyPlaying?.metadata).not.toBeUndefined();
+    expect(onMetadataUpdate).toHaveBeenCalledTimes(1);
+  });
 });
