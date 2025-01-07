@@ -22,5 +22,6 @@ export default function () {
   return {
     list: tracks,
     find: findTracks,
+    getArtwork: library.value.tracks.getArtwork.bind(library.value.tracks),
   };
 }
