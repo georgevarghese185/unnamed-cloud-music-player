@@ -11,6 +11,7 @@ import type { Source } from '../../source';
 import { getErrorMessage } from '../../error/util';
 import type { TrackStore } from '../store/track';
 import type { Track } from '../track';
+import globalEvents from '../global-events';
 import { Consumer, Producer } from 'app/src-core/util/producer-consumer';
 
 export class MetadataExtractionError extends Error {
@@ -154,6 +155,8 @@ export class MetadataExtractionJob {
       }
 
       await Promise.all(updates);
+
+      globalEvents.emit(`trackMetadataUpdate:${track.id}`, track);
     } catch (e) {
       this.events.emit('error', new MetadataExtractionError(getErrorMessage(e), track));
     }

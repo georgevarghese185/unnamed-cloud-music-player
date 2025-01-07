@@ -21,3 +21,4 @@ export type { Track, Identifier, Metadata } from './track';
 export { Player } from './player';
 export type { PlayerEvents } from './player';
 export * from './errors';
+export { default as globalEvents } from './global-events';
