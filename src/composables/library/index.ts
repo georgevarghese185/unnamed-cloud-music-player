@@ -4,5 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-export { default as useLibrary } from './use-library';
+export { default as useImport } from './use-import';
 export { default as useLibraryProvider } from './use-library-provider';
+export { default as usePlayer } from './use-player';
+export { default as useTracks } from './use-tracks';

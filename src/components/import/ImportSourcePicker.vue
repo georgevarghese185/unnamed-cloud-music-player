@@ -28,9 +28,9 @@
 import type { Source } from 'app/src-core/source';
 import type { DeviceSource } from 'app/src-core/source/device';
 import { DEVICE_SOURCE_NAME } from 'app/src-core/source/device';
-import { useLibrary } from 'src/composables/library';
+import { useImport } from 'src/composables/library';
 
-const { getSource } = useLibrary();
+const { getSource } = useImport();
 
 const model = defineModel<boolean>({ default: true });
 const emits = defineEmits<{

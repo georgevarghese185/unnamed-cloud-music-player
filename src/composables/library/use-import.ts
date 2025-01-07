@@ -4,37 +4,24 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import type { ShallowRef } from 'vue';
 import { inject, onMounted, onUnmounted, ref, shallowRef } from 'vue';
 import { Notify } from 'quasar';
 import {
   importErrorsInjectionKey,
   importJobInjectionKey,
   importProgressInjectionKey,
-  libraryInjectionKey,
+  injectLibrary,
   metadataJobInjectionKey,
   tracksInjectionKey,
 } from './use-library-provider';
 import type {
   ImportJob,
   ImportProgress,
-  Library,
   MetadataExtractionError,
   Track,
   TrackImportError,
 } from 'app/src-core/library';
 import type { Source } from 'app/src-core/source';
-import type { PlaybackError } from 'app/src-core/audio-player';
-
-function injectLibrary(): ShallowRef<Library> {
-  const library = inject(libraryInjectionKey);
-
-  if (!library) {
-    throw new Error('Library should have been provided with provide()');
-  }
-
-  return library;
-}
 
 export default function useLibrary() {
   const library = injectLibrary();
@@ -42,12 +29,10 @@ export default function useLibrary() {
   const metadataJob = inject(metadataJobInjectionKey, ref(null));
   const importProgress = inject(importProgressInjectionKey, ref(null));
   const importErrors = inject(importErrorsInjectionKey, ref([]));
-  const { tracks, setTracks } = inject(tracksInjectionKey, {
+  const { setTracks } = inject(tracksInjectionKey, {
     tracks: shallowRef([]),
     setTracks: () => {},
   });
-  const currentlyPlaying = ref(library.value.player.currentlyPlaying);
-  const playerState = ref(library.value.player.state);
 
   function onImportProgress(tracks: Track[], progress: ImportProgress) {
     importProgress.value = progress;
@@ -77,26 +62,10 @@ export default function useLibrary() {
     Notify.create({ type: 'error', message: e.message });
   }
 
-  function onPlayerStateChange() {
-    currentlyPlaying.value = library.value.player.currentlyPlaying;
-    playerState.value = library.value.player.state;
-  }
-
-  function onPlayerError(e: PlaybackError) {
-    Notify.create({
-      type: 'negative',
-      message: e.message,
-    });
-  }
-
   onMounted(() => {
     if (importJob.value) {
       onImport(importJob.value);
     }
-
-    library.value.player.on('play', onPlayerStateChange);
-    library.value.player.on('pause', onPlayerStateChange);
-    library.value.player.on('error', onPlayerError);
   });
 
   onUnmounted(() => {
@@ -105,9 +74,6 @@ export default function useLibrary() {
     importJob.value?.off('complete', onImportComplete);
     metadataJob.value?.off('error', onMetadataError);
     metadataJob.value?.off('complete', onMetadataComplete);
-    library.value.player.off('play', onPlayerStateChange);
-    library.value.player.off('pause', onPlayerStateChange);
-    library.value.player.off('error', onPlayerError);
   });
 
   function startImport<K extends string, I, M>(source: Source<K, I, M>, inputs: I) {
@@ -138,22 +104,9 @@ export default function useLibrary() {
   }
 
   return {
-    import: {
-      start: startImport,
-      progress: importProgress,
-      errors: importErrors,
-    },
+    import: startImport,
+    importProgress,
+    importErrors,
     getSource: library.value.getSource.bind(library.value),
-    tracks: {
-      list: tracks,
-      find: findTracks,
-    },
-    player: {
-      play: library.value.player.play.bind(library.value.player),
-      pause: library.value.player.pause.bind(library.value.player),
-      resume: library.value.player.resume.bind(library.value.player),
-      state: playerState,
-      currentlyPlaying,
-    },
   };
 }

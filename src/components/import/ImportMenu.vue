@@ -15,19 +15,19 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useLibrary } from 'src/composables/library';
 import ImportSourcePicker from 'src/components/import/ImportSourcePicker.vue';
 import ImportProgress from 'src/components/import/ImportProgress.vue';
 import type { Source } from 'app/src-core/source';
+import { useImport } from 'src/composables/library';
 
 const { t } = useI18n();
 
-const library = useLibrary();
+const { import: start } = useImport();
 const sourcePickerDialog = ref(false);
 const importDialog = ref(false);
 
 function startImport<K extends string, I, M>(source: Source<K, I, M>, inputs: I) {
-  library.import.start(source, inputs);
+  start(source, inputs);
   sourcePickerDialog.value = false;
   importDialog.value = true;
 }

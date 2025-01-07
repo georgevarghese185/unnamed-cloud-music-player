@@ -6,29 +6,37 @@
   <q-card v-if="currentlyPlaying" class="absolute-bottom q-mx-lg">
     <q-card-section>
       <div class="row">
+        <div class="q-ml-lg col column">
+          <p class="row q-ma-none">{{ artist }} - {{ title }}</p>
+          <p class="row q-ma-none">{{ album }}</p>
+        </div>
         <q-btn
-          :icon="playerState === 'playing' ? 'pause' : 'arrow_right'"
+          class="col-auto"
+          :icon="state === 'playing' ? 'pause' : 'arrow_right'"
           @click="togglePlayState"
         />
-        <p>{{ currentlyPlaying.file.name }}</p>
       </div>
     </q-card-section>
   </q-card>
 </template>
 
 <script setup lang="ts">
-import useLibrary from 'src/composables/library/use-library';
+import { computed } from 'vue';
+import { usePlayer } from 'src/composables/library';
 
-const library = useLibrary();
+const { currentlyPlaying, state, pause, resume } = usePlayer();
 
-const currentlyPlaying = library.player.currentlyPlaying;
-const playerState = library.player.state;
+const title = computed(
+  () => currentlyPlaying.value?.metadata?.title || currentlyPlaying.value?.file.name,
+);
+const artist = computed(() => currentlyPlaying.value?.metadata?.artist || 'Unknown Artist');
+const album = computed(() => currentlyPlaying.value?.metadata?.album || 'Unknown Album');
 
 function togglePlayState() {
-  if (library.player.state.value === 'playing') {
-    library.player.pause();
+  if (state.value === 'playing') {
+    pause();
   } else {
-    library.player.resume();
+    resume();
   }
 }
 </script>

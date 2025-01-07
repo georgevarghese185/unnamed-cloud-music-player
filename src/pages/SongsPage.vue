@@ -4,7 +4,7 @@
 
 <template>
   <div class="q-pl-md" style="flex: 1 1 auto; overflow: auto">
-    <q-virtual-scroll :items="tracks" separator v-slot="{ item }">
+    <q-virtual-scroll :items="list" separator v-slot="{ item }">
       <q-item :key="item.id" dense class="no-border">
         <div class="row items-center q-mt-md cursor-pointer col-grow" @click="play(item)">
           <img class="album-art" />
@@ -18,17 +18,16 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import type { Track } from 'app/src-core/library';
-import { useLibrary } from 'src/composables/library';
+import { usePlayer, useTracks } from 'src/composables/library';
 
-const library = useLibrary();
+const { find, list } = useTracks();
+const { play: playTrack } = usePlayer();
 
-onMounted(() => library.tracks.find());
+onMounted(() => find());
 
 function play(track: Track) {
-  library.player.play(track);
+  playTrack(track);
 }
-
-const tracks = library.tracks.list;
 </script>
 
 <style scoped>
