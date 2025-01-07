@@ -88,7 +88,7 @@ export class MetadataExtractionJob {
 
       for (
         let tracks = tracksToUpdate.splice(0, 5);
-        tracks.length > 1;
+        tracks.length > 0;
         tracks = tracksToUpdate.splice(0, 5)
       ) {
         if (this.canceled) {
