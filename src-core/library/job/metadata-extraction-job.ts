@@ -5,9 +5,8 @@
  */
 
 import { EventEmitter } from 'events';
-import { parseFromTokenizer } from 'music-metadata';
+import { parseWebStream } from 'music-metadata';
 import type TypedEventEmitter from 'typed-emitter';
-import { fromWebStream } from 'strtok3';
 import type { Source } from '../../source';
 import { getErrorMessage } from '../../error/util';
 import type { TrackStore } from '../store/track';
@@ -118,19 +117,20 @@ export class MetadataExtractionJob {
       }
 
       const stream = source.stream(track);
-      const tokenizer = fromWebStream(stream, {
-        fileInfo: { mimeType: track.mime, path: track.file.name, size: track.file.size },
-      });
-
-      const meta = await parseFromTokenizer(tokenizer, {
-        skipCovers: false,
-        duration: false,
-        includeChapters: false,
-        skipPostHeaders: true,
-      });
-
-      // Close file stream. We don't need to read any more data than required
-      void tokenizer.abort();
+      const meta = await parseWebStream(
+        stream,
+        {
+          mimeType: track.mime,
+          path: track.file.name,
+          size: track.file.size,
+        },
+        {
+          skipCovers: false,
+          duration: false,
+          includeChapters: false,
+          skipPostHeaders: true,
+        },
+      );
 
       track.metadata = {};
 
