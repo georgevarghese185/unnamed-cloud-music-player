@@ -19,9 +19,16 @@ export interface IIdentifier extends Identifier {
   trackId: number;
 }
 
+export interface IArtwork {
+  id: number;
+  trackId: number;
+  artwork: Uint8Array;
+}
+
 export class LibraryDatabase extends DexieJs {
   tracks!: EntityTable<ITrack, 'id'>;
   identifiers!: EntityTable<IIdentifier, 'id'>;
+  artwork!: EntityTable<IArtwork, 'id'>;
 
   constructor(dexieOptions?: DexieOptions) {
     super(DB_NAME, dexieOptions);
@@ -43,6 +50,10 @@ export class LibraryDatabase extends DexieJs {
             track.hasMetadata = track.metadata ? 1 : 0;
           });
       });
+
+    this.version(3).stores({
+      artwork: '++id, trackId',
+    });
   }
 
   // methods for inserting entities without an id so that IndexedDB can autogenerate an id

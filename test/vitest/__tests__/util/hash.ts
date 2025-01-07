@@ -12,9 +12,10 @@ export function hashFile(filePath: string) {
   return hash.digest('hex');
 }
 
-export function hashUint8Array(uint8Array: Uint8Array[]) {
+export function hashUint8Array(uint8Array: Uint8Array[] | Uint8Array) {
+  const arrays = Array.isArray(uint8Array) ? uint8Array : [uint8Array];
   const hash = createHash('sha256');
-  uint8Array.map((chunk) => hash.update(chunk));
+  arrays.map((chunk) => hash.update(chunk));
   return hash.digest('hex');
 }
 
