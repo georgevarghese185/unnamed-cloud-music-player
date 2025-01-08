@@ -6,6 +6,7 @@
 
 import { inject, onMounted, onUnmounted, ref, shallowRef } from 'vue';
 import { Notify } from 'quasar';
+import { debounce } from 'lodash';
 import {
   importErrorsInjectionKey,
   importJobInjectionKey,
@@ -74,6 +75,7 @@ export default function useLibrary() {
     importJob.value?.off('complete', onImportComplete);
     metadataJob.value?.off('error', onMetadataError);
     metadataJob.value?.off('complete', onMetadataComplete);
+    metadataJob.value?.off('update', refreshTracksOcassionally);
   });
 
   function startImport<K extends string, I, M>(source: Source<K, I, M>, inputs: I) {
@@ -93,6 +95,11 @@ export default function useLibrary() {
     setTracks(await library.value.tracks.list({ limit: 1000000, offset: 0 }));
   }
 
+  const refreshTracksOcassionally = debounce(() => void findTracks(), 5000, {
+    trailing: true,
+    maxWait: 5000,
+  });
+
   async function updateMetadata() {
     if (metadataJob.value) {
       await metadataJob.value.cancel();
@@ -101,6 +108,7 @@ export default function useLibrary() {
     metadataJob.value = library.value.updateAllMetadata();
     metadataJob.value.on('error', onMetadataError);
     metadataJob.value.on('complete', onMetadataComplete);
+    metadataJob.value.on('update', refreshTracksOcassionally);
   }
 
   return {

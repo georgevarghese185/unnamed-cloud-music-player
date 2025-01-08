@@ -12,4 +12,8 @@ export type GlobalEvents = {
   [key: `trackMetadataUpdate:${string}`]: (track: Track) => void;
 };
 
-export default new EventEmitter() as TypedEventEmitter<GlobalEvents>;
+const events = new EventEmitter() as TypedEventEmitter<GlobalEvents>;
+
+events.setMaxListeners(200);
+
+export default events;

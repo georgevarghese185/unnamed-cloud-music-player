@@ -11,10 +11,7 @@
       :scroll-target="scrollTarget || undefined"
     >
       <q-item :key="item.id" dense class="no-border">
-        <div class="row items-center q-mt-md cursor-pointer col-grow" @click="play(item)">
-          <img class="album-art" />
-          <p class="q-ma-none q-ml-sm text-center">{{ item.file.name }}</p>
-        </div>
+        <TrackListItem :track="item" @click="play(item)" />
       </q-item>
     </q-virtual-scroll>
   </div>
@@ -22,8 +19,9 @@
 
 <script setup lang="ts">
 import { onMounted, useTemplateRef } from 'vue';
-import type { Track } from 'app/src-core/library';
+import TrackListItem from 'src/components/track/TrackListItem.vue';
 import { usePlayer, useTracks } from 'src/composables/library';
+import type { Track } from 'app/src-core/library';
 
 const scrollTarget = useTemplateRef('scroll-target');
 const { find, list } = useTracks();
@@ -35,12 +33,3 @@ function play(track: Track) {
   playTrack(track);
 }
 </script>
-
-<style scoped>
-.album-art {
-  background: #c4c4c4;
-  width: 52px;
-  height: 52px;
-  border-radius: 5px;
-}
-</style>
