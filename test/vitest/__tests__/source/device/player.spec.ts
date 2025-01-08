@@ -123,6 +123,7 @@ describe('Player + device source', () => {
 
   it('should update track info of currently playing track when metadata has been updated', async () => {
     const { deviceSource, library, audioPlayer } = createDeviceLibraryFixture(nodeFs);
+    const expectedCurrentTime = 10;
     const onMetadataUpdate = vi.fn();
     library.player.on('metadataUpdate', onMetadataUpdate);
 
@@ -143,6 +144,7 @@ describe('Player + device source', () => {
         audioPlayer.emit('started');
         audioPlayer.emit('buffering');
         audioPlayer.emit('playing');
+        audioPlayer.currentTime = expectedCurrentTime;
         resolve();
       });
 
@@ -159,5 +161,33 @@ describe('Player + device source', () => {
     // currently playing track should have its metadata updated by now
     expect(library.player.currentlyPlaying?.metadata).not.toBeUndefined();
     expect(onMetadataUpdate).toHaveBeenCalledTimes(1);
+    expect(library.player.currentTime).toEqual(expectedCurrentTime);
   });
+
+  // it('should seek track', async () => {
+  //   const { deviceSource, library, audioPlayer } = createDeviceLibraryFixture(nodeFs);
+  //   const filePath = resolve(
+  //     'test/fixtures/music/Kevin MacLeod - I Got a Stick Arr Bryan Teoh.mp3',
+  //   );
+
+  //   const job = library.import(deviceSource, [filePath]);
+  //   await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
+  //   const [track] = await library.tracks.list({ limit: 1, offset: 0 });
+
+  //   if (!track) {
+  //     fail('Track not found');
+  //   }
+
+  //   await new Promise<void>((resolve) => {
+  //     vi.spyOn(audioPlayer, 'play').mockImplementationOnce(() => {
+  //       audioPlayer.emit('started');
+  //       audioPlayer.emit('buffering');
+  //       audioPlayer.emit('playing');
+  //       audioPlayer.emit('skeek');
+  //       resolve();
+  //     });
+
+  //     library.player.play(track);
+  //   });
+  // })
 });

@@ -22,8 +22,8 @@ export type PlayerEvents = {
 export type PlayerState = 'playing' | 'paused';
 
 export class Player {
-  state: PlayerState = 'paused';
-  currentlyPlaying: Track | null = null;
+  private _state: PlayerState = 'paused';
+  private _currentlyPlaying: Track | null = null;
   private events = new EventEmitter() as TypedEventEmitter<PlayerEvents>;
 
   constructor(
@@ -31,19 +31,19 @@ export class Player {
     private readonly audioPlayer: AudioPlayer,
   ) {
     audioPlayer.on('started', () => {
-      this.state = 'playing';
+      this._state = 'playing';
       this.events.emit('play');
     });
     audioPlayer.on('playing', () => {
-      this.state = 'playing';
+      this._state = 'playing';
       this.events.emit('play');
     });
     audioPlayer.on('paused', () => {
-      this.state = 'paused';
+      this._state = 'paused';
       this.events.emit('pause');
     });
     audioPlayer.on('stopped', () => {
-      this.state = 'paused';
+      this._state = 'paused';
       this.events.emit('pause');
     });
     audioPlayer.on('error', (e) => {
@@ -87,15 +87,27 @@ export class Player {
     this.events.removeAllListeners(event);
   }
 
+  get currentlyPlaying() {
+    return this._currentlyPlaying;
+  }
+
+  get state() {
+    return this._state;
+  }
+
+  get currentTime() {
+    return this.audioPlayer.currentTime;
+  }
+
   private setCurrentlyPlaying(track: Track) {
-    if (this.currentlyPlaying) {
+    if (this._currentlyPlaying) {
       globalEvents.off(
         `trackMetadataUpdate:${track.id}`,
         this.onCurrentTrackMetadataUpdate.bind(this),
       );
     }
 
-    this.currentlyPlaying = track;
+    this._currentlyPlaying = track;
     globalEvents.on(
       `trackMetadataUpdate:${track.id}`,
       this.onCurrentTrackMetadataUpdate.bind(this),
@@ -103,7 +115,7 @@ export class Player {
   }
 
   private onCurrentTrackMetadataUpdate(track: Track) {
-    this.currentlyPlaying = track;
+    this._currentlyPlaying = track;
     this.events.emit('metadataUpdate');
   }
 

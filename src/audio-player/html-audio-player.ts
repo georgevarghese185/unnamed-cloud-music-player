@@ -84,6 +84,10 @@ export default class HtmlAudioPlayer implements AudioPlayer {
     return !!this.audio.canPlayType(mimeType);
   }
 
+  get currentTime() {
+    return this.audio.currentTime;
+  }
+
   play(audio: Audio): void {
     const play = async () => {
       try {

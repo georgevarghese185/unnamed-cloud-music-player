@@ -25,6 +25,7 @@ export type Audio = {
 };
 
 export interface AudioPlayer {
+  readonly currentTime: number;
   supports(mimeType: string): boolean;
   play(audio: Audio): void;
   pause(): void;
