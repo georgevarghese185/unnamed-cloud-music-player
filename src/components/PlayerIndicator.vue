@@ -12,6 +12,7 @@
           <p class="row q-ma-none">{{ artist }} - {{ title }}</p>
           <p class="row q-ma-none">{{ album }}</p>
         </div>
+        <p class="col-auto">{{ currentTime }}</p>
         <q-btn
           class="col-auto"
           :icon="state === 'playing' ? 'pause' : 'arrow_right'"
@@ -23,10 +24,11 @@
 </template>
 
 <script setup lang="ts">
-import { usePlayer, useTrackInfo } from 'src/composables/library';
+import { usePlayer, useTrackInfo, usePlaytime } from 'src/composables/library';
 
 const { pause, resume, currentlyPlaying, state } = usePlayer();
 const { album, artist, artworkUrl, title } = useTrackInfo(currentlyPlaying);
+const currentTime = usePlaytime();
 
 function togglePlayState() {
   if (state.value === 'playing') {
