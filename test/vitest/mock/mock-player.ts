@@ -21,4 +21,7 @@ export class MockAudioPlayer extends EventEmitter implements AudioPlayer {
   resume(): void {
     throw new Error('Method not implemented.');
   }
+  seek(_time: number): void {
+    throw new Error('Method not implemented.');
+  }
 }

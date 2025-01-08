@@ -114,6 +114,10 @@ export default class HtmlAudioPlayer implements AudioPlayer {
     void this.audio.play();
   }
 
+  seek(time: number) {
+    this.audio.currentTime = time;
+  }
+
   private async playAsMediaSource(audio: Audio) {
     const unplayedChunks: Uint8Array[] = [];
 

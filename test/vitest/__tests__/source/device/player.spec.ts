@@ -164,30 +164,34 @@ describe('Player + device source', () => {
     expect(library.player.currentTime).toEqual(expectedCurrentTime);
   });
 
-  // it('should seek track', async () => {
-  //   const { deviceSource, library, audioPlayer } = createDeviceLibraryFixture(nodeFs);
-  //   const filePath = resolve(
-  //     'test/fixtures/music/Kevin MacLeod - I Got a Stick Arr Bryan Teoh.mp3',
-  //   );
+  it('should seek track', async () => {
+    const { deviceSource, library, audioPlayer } = createDeviceLibraryFixture(nodeFs);
+    const filePath = resolve(
+      'test/fixtures/music/Kevin MacLeod - I Got a Stick Arr Bryan Teoh.mp3',
+    );
 
-  //   const job = library.import(deviceSource, [filePath]);
-  //   await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
-  //   const [track] = await library.tracks.list({ limit: 1, offset: 0 });
+    const job = library.import(deviceSource, [filePath]);
+    await new Promise<ImportProgress>((resolve) => job.on('complete', resolve));
+    const [track] = await library.tracks.list({ limit: 1, offset: 0 });
 
-  //   if (!track) {
-  //     fail('Track not found');
-  //   }
+    if (!track) {
+      fail('Track not found');
+    }
 
-  //   await new Promise<void>((resolve) => {
-  //     vi.spyOn(audioPlayer, 'play').mockImplementationOnce(() => {
-  //       audioPlayer.emit('started');
-  //       audioPlayer.emit('buffering');
-  //       audioPlayer.emit('playing');
-  //       audioPlayer.emit('skeek');
-  //       resolve();
-  //     });
+    await new Promise<void>((resolve) => {
+      vi.spyOn(audioPlayer, 'play').mockImplementationOnce(() => {
+        audioPlayer.emit('started');
+        audioPlayer.emit('buffering');
+        audioPlayer.emit('playing');
+        resolve();
+      });
 
-  //     library.player.play(track);
-  //   });
-  // })
+      library.player.play(track);
+    });
+
+    const onSeek = vi.spyOn(audioPlayer, 'seek').mockImplementation(() => {});
+    library.player.seek(10);
+
+    expect(onSeek).toHaveBeenCalledWith(10);
+  });
 });

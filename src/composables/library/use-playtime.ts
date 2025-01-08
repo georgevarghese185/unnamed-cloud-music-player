@@ -4,22 +4,23 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { injectLibrary } from './use-library-provider';
 
 export default function () {
   const library = injectLibrary();
-  const currentTime = ref('0:00');
+  const currentTime = ref(0);
+  const currentTimeString = computed(() => {
+    const minutesString = Math.floor(currentTime.value / 60).toString();
+    const seconds = Math.floor(currentTime.value % 60);
+    const secondsString = seconds < 10 ? `0${seconds}` : seconds;
+    return `${minutesString}:${secondsString}`;
+  });
   let timer = 0;
 
   onMounted(() => {
     timer = window.setInterval(() => {
-      const time = library.value.player.currentTime;
-      const minutesString = Math.floor(time / 60).toString();
-      const seconds = Math.floor(time % 60);
-      const secondsString = seconds < 10 ? `0${seconds}` : seconds;
-
-      currentTime.value = `${minutesString}:${secondsString}`;
+      currentTime.value = library.value.player.currentTime;
     }, 500);
   });
 
@@ -27,5 +28,5 @@ export default function () {
     clearTimeout(timer);
   });
 
-  return currentTime;
+  return { currentTimeString, currentTime };
 }

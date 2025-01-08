@@ -5,6 +5,13 @@
 <template>
   <q-card v-if="currentlyPlaying" class="absolute-bottom q-mx-lg">
     <q-card-section>
+      <q-slider
+        class="row"
+        :model-value="currentTime"
+        @update:model-value="onSeek"
+        :min="0"
+        :max="currentlyPlaying.metadata?.duration || 0"
+      />
       <div class="row">
         <img v-if="artworkUrl" class="album-art col-auto" :src="artworkUrl" />
         <img v-else class="album-art col-auto" />
@@ -12,7 +19,7 @@
           <p class="row q-ma-none">{{ artist }} - {{ title }}</p>
           <p class="row q-ma-none">{{ album }}</p>
         </div>
-        <p class="col-auto">{{ currentTime }}</p>
+        <p class="col-auto">{{ currentTimeString }}</p>
         <q-btn
           class="col-auto"
           :icon="state === 'playing' ? 'pause' : 'arrow_right'"
@@ -26,9 +33,15 @@
 <script setup lang="ts">
 import { usePlayer, useTrackInfo, usePlaytime } from 'src/composables/library';
 
-const { pause, resume, currentlyPlaying, state } = usePlayer();
+const { pause, resume, currentlyPlaying, state, seek } = usePlayer();
 const { album, artist, artworkUrl, title } = useTrackInfo(currentlyPlaying);
-const currentTime = usePlaytime();
+const { currentTime, currentTimeString } = usePlaytime();
+
+function onSeek(value: number | null) {
+  if (value) {
+    seek(value);
+  }
+}
 
 function togglePlayState() {
   if (state.value === 'playing') {

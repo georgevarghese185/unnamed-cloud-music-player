@@ -71,6 +71,22 @@ export class Player {
     this.audioPlayer.resume();
   }
 
+  seek(time: number) {
+    this.audioPlayer.seek(time);
+  }
+
+  get currentlyPlaying() {
+    return this._currentlyPlaying;
+  }
+
+  get state() {
+    return this._state;
+  }
+
+  get currentTime() {
+    return this.audioPlayer.currentTime;
+  }
+
   on<E extends keyof PlayerEvents>(event: E, handler: PlayerEvents[E]) {
     this.events.on(event, handler);
   }
@@ -85,18 +101,6 @@ export class Player {
 
   removeAllListeners<E extends keyof PlayerEvents>(event: E) {
     this.events.removeAllListeners(event);
-  }
-
-  get currentlyPlaying() {
-    return this._currentlyPlaying;
-  }
-
-  get state() {
-    return this._state;
-  }
-
-  get currentTime() {
-    return this.audioPlayer.currentTime;
   }
 
   private setCurrentlyPlaying(track: Track) {
