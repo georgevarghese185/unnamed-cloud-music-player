@@ -4,7 +4,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import type { IpcRendererEvent } from 'electron';
 import { ipcRenderer } from 'electron';
 import {
   IPC_CHANNEL_GET_FILE,
@@ -28,12 +27,8 @@ export type Bridge = {
     openFileSelector: (options?: OpenFileSectorOptions) => Promise<string[] | undefined>;
     readFile: (
       path: string,
-      callbacks: {
-        onData: (chunk: Uint8Array) => void;
-        onEnd: () => void;
-        onError: (e: unknown) => void;
-      },
-    ) => Promise<{ cancel: () => void; pause: () => void; resume: () => void }>;
+      onError: (e: unknown) => void,
+    ) => Promise<{ cancel: () => void; read: () => Promise<Uint8Array | undefined> }>;
   };
 };
 
@@ -48,50 +43,34 @@ export const bridge: Bridge = {
     openFileSelector(options) {
       return ipcRenderer.invoke(IPC_CHANNEL_OPEN_FILE_SELECTOR, options);
     },
-    async readFile(path, callbacks) {
+    async readFile(path, onError) {
       const fileId = await ipcRenderer.invoke(IPC_CHANNEL_READ_FILE, path);
 
-      ipcRenderer.on(
-        `${IPC_CHANNEL_READ_FILE}:${fileId}:data`,
-        (event: IpcRendererEvent, chunk: Uint8Array) => {
-          callbacks.onData(chunk);
-        },
-      );
-
-      ipcRenderer.on(`${IPC_CHANNEL_READ_FILE}:${fileId}:end`, () => {
-        callbacks.onEnd();
-        cleanup();
-      });
-
-      ipcRenderer.on(
-        `${IPC_CHANNEL_READ_FILE}:${fileId}:error`,
-        (event: IpcRendererEvent, e: unknown) => {
-          callbacks.onError(e);
+      async function read() {
+        const data: Uint8Array | undefined = await ipcRenderer.invoke(
+          `${IPC_CHANNEL_READ_FILE}:${fileId}:read`,
+        );
+        if (!data) {
           cleanup();
-        },
-      );
-
-      function cleanup() {
-        ipcRenderer.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:data`);
-        ipcRenderer.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:end`);
-        ipcRenderer.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:error`);
+        }
+        return data;
       }
 
       function cancel() {
-        ipcRenderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:cancel`);
         cleanup();
+        ipcRenderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:cancel`);
       }
 
-      function pause() {
-        ipcRenderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:pause`);
+      ipcRenderer.on(`${IPC_CHANNEL_READ_FILE}:${fileId}:error`, (event, e: unknown) => {
+        cleanup();
+        onError(e);
+      });
+
+      function cleanup() {
+        ipcRenderer.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:error`);
       }
 
-      function resume() {
-        ipcRenderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:resume`);
-      }
-
-      ipcRenderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:ready`);
-      return { cancel, pause, resume };
+      return { cancel, read };
     },
   },
 };

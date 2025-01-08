@@ -64,56 +64,32 @@ export function setupFileIpc(window: BaseWindow, storage: NodeFsDeviceStorage) {
     const stream = storage.readFile(path);
     const reader = stream.getReader();
 
-    async function sendBytes() {
-      try {
-        let cancel = false;
-        let paused = false;
+    ipcMain.handle(`${IPC_CHANNEL_READ_FILE}:${fileId}:read`, () => {
+      return new Promise<Uint8Array | undefined>((resolve) => {
+        reader
+          .read()
+          .then(({ value }) => {
+            if (!value) {
+              cleanup();
+            }
+            resolve(value);
+          })
+          .catch((e) => {
+            renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:error`, e);
+            cleanup();
+          });
+      });
+    });
 
-        ipcMain.once(`${IPC_CHANNEL_READ_FILE}:${fileId}:cancel`, () => {
-          cancel = true;
-        });
-
-        ipcMain.on(`${IPC_CHANNEL_READ_FILE}:${fileId}:pause`, () => {
-          paused = true;
-        });
-
-        ipcMain.on(`${IPC_CHANNEL_READ_FILE}:${fileId}:resume`, () => {
-          paused = false;
-        });
-
-        for (
-          let { done, value } = await reader.read();
-          !done && !cancel && value;
-          { done, value } = await reader.read()
-        ) {
-          renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:data`, value);
-
-          if (paused) {
-            await new Promise((resolve) =>
-              ipcMain.once(`${IPC_CHANNEL_READ_FILE}:${fileId}:resume`, resolve),
-            );
-          }
-        }
-
-        if (!cancel) {
-          renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:end`);
-        } else {
-          void reader.cancel();
-        }
-      } catch (e) {
-        renderer.send(`${IPC_CHANNEL_READ_FILE}:${fileId}:error`, e);
-      }
-
-      cleanup();
-    }
+    ipcMain.once(`${IPC_CHANNEL_READ_FILE}:${fileId}:cancel`, () => {
+      void reader.cancel();
+    });
 
     function cleanup() {
+      ipcMain.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:read`);
       ipcMain.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:cancel`);
-      ipcMain.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:pause`);
-      ipcMain.removeAllListeners(`${IPC_CHANNEL_READ_FILE}:${fileId}:resume`);
     }
 
-    ipcMain.once(`${IPC_CHANNEL_READ_FILE}:${fileId}:ready`, () => void sendBytes());
     return fileId;
   });
 }
