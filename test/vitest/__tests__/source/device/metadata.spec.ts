@@ -20,12 +20,14 @@ describe('Music Metadata', () => {
     await new Promise<ImportProgress>((resolve) => importJob.on('complete', resolve));
     let tracks = await library.tracks.list({ limit: 10000, offset: 0 });
 
-    const onTrackMetadataUpdate = vi.fn((_track: Track) => {});
+    const onIndividualTrackUpdate = vi.fn((_track: Track) => {});
+    const onTrackUpdate = vi.fn((_track: Track) => {});
     tracks.forEach((track) =>
-      globalEvents.on(`trackMetadataUpdate:${track.id}`, onTrackMetadataUpdate),
+      globalEvents.on(`trackMetadataUpdate:${track.id}`, onIndividualTrackUpdate),
     );
 
     const updateJob = library.updateAllMetadata();
+    updateJob.on('update', onTrackUpdate);
     await new Promise<void>((resolve) => updateJob.on('complete', resolve));
 
     tracks = await library.tracks.list({ limit: 10000, offset: 0 });
@@ -70,7 +72,8 @@ describe('Music Metadata', () => {
       ),
     );
 
-    expect(sortBy(onTrackMetadataUpdate.mock.calls.flat(), 'id')).toEqual(sortBy(tracks, 'id'));
+    expect(sortBy(onIndividualTrackUpdate.mock.calls.flat(), 'id')).toEqual(sortBy(tracks, 'id'));
+    expect(sortBy(onTrackUpdate.mock.calls.flat(), 'id')).toEqual(sortBy(tracks, 'id'));
 
     const artwork = await Promise.all(tracks.map((t) => trackStore.getArtwork(t)));
 

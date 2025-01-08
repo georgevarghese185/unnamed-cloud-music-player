@@ -27,6 +27,7 @@ export class MetadataExtractionError extends Error {
 
 export type MetadataJobEvents = {
   complete: () => void;
+  update: (track: Track) => void;
   error: (e: MetadataExtractionError) => void;
 };
 
@@ -157,6 +158,7 @@ export class MetadataExtractionJob {
       await Promise.all(updates);
 
       globalEvents.emit(`trackMetadataUpdate:${track.id}`, track);
+      this.events.emit('update', track);
     } catch (e) {
       this.events.emit('error', new MetadataExtractionError(getErrorMessage(e), track));
     }

@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { computed, onUnmounted, ref, watch, type Ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch, type Ref } from 'vue';
 import { Notify } from 'quasar';
 import useTracks from './use-tracks';
 import type { Track } from 'app/src-core/library';
@@ -16,7 +16,7 @@ export default function useTrackInfo(track: Ref<Track | null | undefined>) {
   const title = computed(() => track.value?.metadata?.title || track.value?.file.name);
   const artist = computed(() => track.value?.metadata?.artist || 'Unknown Artist');
   const album = computed(() => track.value?.metadata?.album || 'Unknown Album');
-  const artworkUrl = ref<string | null>(null);
+  const artworkUrl = ref<string | undefined>(undefined);
 
   async function updateArtworkUrl() {
     try {
@@ -39,12 +39,16 @@ export default function useTrackInfo(track: Ref<Track | null | undefined>) {
   function revokeArtworkUrl() {
     if (artworkUrl.value) {
       URL.revokeObjectURL(artworkUrl.value);
-      artworkUrl.value = null;
+      artworkUrl.value = undefined;
     }
   }
 
   watch(track, () => {
     revokeArtworkUrl();
+    void updateArtworkUrl();
+  });
+
+  onMounted(() => {
     void updateArtworkUrl();
   });
 

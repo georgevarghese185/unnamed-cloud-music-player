@@ -3,23 +3,27 @@
 - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-  <div class="q-pl-md" style="flex: 1 1 auto; overflow: auto">
-    <q-virtual-scroll :items="list" separator v-slot="{ item }">
+  <div class="q-pl-md" style="flex: 1 1 auto; overflow: auto" ref="scroll-target">
+    <q-virtual-scroll
+      :items="list"
+      separator
+      v-slot="{ item }"
+      :scroll-target="scrollTarget || undefined"
+    >
       <q-item :key="item.id" dense class="no-border">
-        <div class="row items-center q-mt-md cursor-pointer col-grow" @click="play(item)">
-          <img class="album-art" />
-          <p class="q-ma-none q-ml-sm text-center">{{ item.file.name }}</p>
-        </div>
+        <TrackListItem :track="item" @click="play(item)" />
       </q-item>
     </q-virtual-scroll>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import type { Track } from 'app/src-core/library';
+import { onMounted, useTemplateRef } from 'vue';
+import TrackListItem from 'src/components/track/TrackListItem.vue';
 import { usePlayer, useTracks } from 'src/composables/library';
+import type { Track } from 'app/src-core/library';
 
+const scrollTarget = useTemplateRef('scroll-target');
 const { find, list } = useTracks();
 const { play: playTrack } = usePlayer();
 
@@ -29,12 +33,3 @@ function play(track: Track) {
   playTrack(track);
 }
 </script>
-
-<style scoped>
-.album-art {
-  background: #c4c4c4;
-  width: 52px;
-  height: 52px;
-  border-radius: 5px;
-}
-</style>
