@@ -3,8 +3,13 @@
 - file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-  <div class="q-pl-md" style="flex: 1 1 auto; overflow: auto">
-    <q-virtual-scroll :items="list" separator v-slot="{ item }">
+  <div class="q-pl-md" style="flex: 1 1 auto; overflow: auto" ref="scroll-target">
+    <q-virtual-scroll
+      :items="list"
+      separator
+      v-slot="{ item }"
+      :scroll-target="scrollTarget || undefined"
+    >
       <q-item :key="item.id" dense class="no-border">
         <div class="row items-center q-mt-md cursor-pointer col-grow" @click="play(item)">
           <img class="album-art" />
@@ -16,10 +21,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, useTemplateRef } from 'vue';
 import type { Track } from 'app/src-core/library';
 import { usePlayer, useTracks } from 'src/composables/library';
 
+const scrollTarget = useTemplateRef('scroll-target');
 const { find, list } = useTracks();
 const { play: playTrack } = usePlayer();
 
