@@ -48,6 +48,7 @@ export default function () {
     play: library.value.player.play.bind(library.value.player),
     pause: library.value.player.pause.bind(library.value.player),
     resume: library.value.player.resume.bind(library.value.player),
+    seek: library.value.player.seek.bind(library.value.player),
     state: playerState,
     currentlyPlaying,
   };

@@ -6,6 +6,7 @@ import type { Track } from 'app/src-core/library';
 import type { Audio, AudioPlayer } from 'app/src-core/audio-player';
 
 export class MockAudioPlayer extends EventEmitter implements AudioPlayer {
+  currentTime = 0;
   track: Track | null = null;
 
   supports(ext: string) {
@@ -18,6 +19,9 @@ export class MockAudioPlayer extends EventEmitter implements AudioPlayer {
     throw new Error('Method not implemented.');
   }
   resume(): void {
+    throw new Error('Method not implemented.');
+  }
+  seek(_time: number): void {
     throw new Error('Method not implemented.');
   }
 }

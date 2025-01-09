@@ -84,6 +84,10 @@ export default class HtmlAudioPlayer implements AudioPlayer {
     return !!this.audio.canPlayType(mimeType);
   }
 
+  get currentTime() {
+    return this.audio.currentTime;
+  }
+
   play(audio: Audio): void {
     const play = async () => {
       try {
@@ -108,6 +112,10 @@ export default class HtmlAudioPlayer implements AudioPlayer {
   resume(): void {
     this.events.emit('buffering');
     void this.audio.play();
+  }
+
+  seek(time: number) {
+    this.audio.currentTime = time;
   }
 
   private async playAsMediaSource(audio: Audio) {

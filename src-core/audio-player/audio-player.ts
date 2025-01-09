@@ -11,6 +11,7 @@ export type AudioPlayerEvents = {
   paused: () => void;
   stopped: () => void;
   error: (e: PlaybackError) => void;
+  seek: () => void;
 };
 
 export class PlaybackError extends Error {
@@ -25,10 +26,12 @@ export type Audio = {
 };
 
 export interface AudioPlayer {
+  readonly currentTime: number;
   supports(mimeType: string): boolean;
   play(audio: Audio): void;
   pause(): void;
   resume(): void;
+  seek(time: number): void;
   on<Event extends keyof AudioPlayerEvents>(event: Event, handler: AudioPlayerEvents[Event]): void;
   once<Event extends keyof AudioPlayerEvents>(
     event: Event,

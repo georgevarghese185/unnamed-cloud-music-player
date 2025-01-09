@@ -55,18 +55,6 @@ export class NodeFsDeviceStorage implements DeviceStorage {
       {
         type: 'bytes',
         start(controller) {
-          stream.on('data', (chunk) => {
-            if (Buffer.isBuffer(chunk)) {
-              controller.enqueue(chunk);
-            } else {
-              controller.enqueue(new TextEncoder().encode(chunk));
-            }
-
-            if ((controller.desiredSize ?? Infinity) <= 0) {
-              stream.pause();
-            }
-          });
-
           stream.on('end', () => {
             controller.close();
           });
@@ -75,8 +63,15 @@ export class NodeFsDeviceStorage implements DeviceStorage {
             controller.error(err);
           });
         },
-        pull() {
-          stream.resume();
+        async pull(controller) {
+          let data = stream.read();
+
+          while (data == null) {
+            await new Promise((resolve) => stream.once('readable', resolve));
+            data = stream.read();
+          }
+
+          controller.enqueue(data);
         },
         cancel() {
           stream.destroy();
