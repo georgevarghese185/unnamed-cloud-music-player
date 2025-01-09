@@ -59,6 +59,13 @@ describe('Music Metadata', () => {
         artist: 'Kevin MacLeod, Bryan Teoh',
         duration: expect.closeTo(31, 0),
       },
+      {
+        path: 'test/fixtures/music/Voxel Revolution.mp3',
+        title: 'Voxel Revolution',
+        artist: 'Kevin MacLeod',
+        album: 'Project 80s',
+        duration: expect.closeTo(130, 0),
+      },
     ];
 
     expect(tracks).toEqual(
@@ -150,6 +157,79 @@ describe('Music Metadata', () => {
     );
   });
 
+  it('should re-do metadata extraction for a tracks who have metadata but missing artwork', async () => {
+    const { deviceSource, library, trackStore } = createDeviceLibraryFixture(fs);
+    const paths = [
+      resolve('test/fixtures/music/Adeste Fideles Waltz.mp3'), // has artwork
+      resolve('test/fixtures/music/Voxel Revolution.mp3'), // doesn't have any artwork
+    ];
+
+    const importJob = library.import(deviceSource, paths);
+    // import and fetch metadata
+    await new Promise<ImportProgress>((resolve) => importJob.on('complete', resolve));
+    let updateJob = library.updateAllMetadata();
+    await new Promise<void>((resolve) => updateJob.on('complete', resolve));
+
+    // purposely delete artwork
+    const tracks = await trackStore.list({ offset: 0, limit: 1000 });
+    await trackStore.deleteArtwork(tracks.map((t) => t.id));
+
+    // re-do metadata fetch
+    updateJob = library.updateAllMetadata();
+    await new Promise<void>((resolve) => updateJob.on('complete', resolve));
+
+    const updatedTracks = await trackStore.list({ offset: 0, limit: 1000 });
+    expect(sortBy(updatedTracks, (t) => t.file.name)).toEqual(
+      [
+        {
+          path: 'test/fixtures/music/Adeste Fideles Waltz.mp3',
+          title: 'Adeste Fideles Waltz',
+          album: 'The Waltzes',
+          artist: 'Kevin MacLeod',
+          duration: expect.closeTo(140, 0),
+        },
+        {
+          path: 'test/fixtures/music/Voxel Revolution.mp3',
+          title: 'Voxel Revolution',
+          artist: 'Kevin MacLeod',
+          album: 'Project 80s',
+          duration: expect.closeTo(130, 0),
+        },
+      ].map(({ path, artist, duration, title, album }) =>
+        deviceTrackExpectation(path, fs.statSync(resolve(path)).size, {
+          artist,
+          duration,
+          title,
+          album,
+        } as Metadata),
+      ),
+    );
+
+    const artwork = await Promise.all(updatedTracks.map((t) => trackStore.getArtwork(t)));
+
+    const actualArtwork = await Promise.all(
+      paths.map(async (path) => {
+        const tokenizer = await fromStream(fs.createReadStream(resolve(path)), {
+          fileInfo: {
+            mimeType: 'audio/mpeg',
+            path,
+            size: fs.statSync(path).size,
+          },
+        });
+        const meta = await parseFromTokenizer(tokenizer, { skipPostHeaders: true });
+        void tokenizer.abort();
+        const image = meta.common.picture?.[0]?.data;
+        return image ? image : null;
+      }),
+    );
+
+    const hashArtwork = (art: Uint8Array | null) => {
+      return art ? hashUint8Array(art) : null;
+    };
+
+    expect(artwork.map(hashArtwork)).toEqual(actualArtwork.map(hashArtwork));
+  });
+
   it('should cancel job', async () => {
     const { deviceSource, library } = createDeviceLibraryFixture(fs);
 
@@ -165,6 +245,6 @@ describe('Music Metadata', () => {
       limit: 1000,
       offset: 0,
     });
-    expect(tracksWithoutMeta).toHaveLength(4);
+    expect(tracksWithoutMeta).toHaveLength(5);
   });
 });

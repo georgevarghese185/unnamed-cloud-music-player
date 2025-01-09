@@ -18,10 +18,15 @@ export class IndexedDbTrackStore implements TrackStore {
   }
 
   async update(tracks: Track[]): Promise<void> {
+    const tracksWithArtwork = await this.db.artwork
+      .where('trackId')
+      .anyOf(tracks.map((t) => t.id))
+      .primaryKeys();
+
     await this.db.tracks.bulkUpdate(
       tracks.map((track) => ({
         key: track.id,
-        changes: { ...toDbTrack(track) },
+        changes: { ...toDbTrack(track, tracksWithArtwork.includes(track.id)) },
       })),
     );
   }
@@ -56,8 +61,11 @@ export class IndexedDbTrackStore implements TrackStore {
     return art?.artwork || null;
   }
 
-  async storeArtwork(track: Track, art: Uint8Array): Promise<void> {
+  async storeArtwork(track: Track, art: Uint8Array | undefined): Promise<void> {
     await this.db.artwork.put({ trackId: track.id, artwork: art });
+    await this.db.tracks.where({ id: track.id }).modify((track) => {
+      track.hasMetadata = track.metadata ? 1 : 0;
+    });
   }
 
   private async addTracks(tracks: Track[]): Promise<Track[]> {
@@ -103,9 +111,9 @@ function toTrack(dbTrack: ITrack): Track {
   return track;
 }
 
-function toDbTrack(track: Track): ITrack {
+function toDbTrack(track: Track, hasArtwork = true): ITrack {
   return {
     ...track,
-    hasMetadata: track.metadata ? 1 : 0,
+    hasMetadata: track.metadata && hasArtwork ? 1 : 0,
   };
 }

@@ -22,7 +22,7 @@ export interface IIdentifier extends Identifier {
 export interface IArtwork {
   id: number;
   trackId: number;
-  artwork: Uint8Array;
+  artwork: Uint8Array | undefined;
 }
 
 export class LibraryDatabase extends DexieJs {

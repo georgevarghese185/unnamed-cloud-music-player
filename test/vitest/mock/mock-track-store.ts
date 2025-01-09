@@ -8,4 +8,14 @@ export class MockTrackStore extends IndexedDbTrackStore {
   constructor() {
     super(new MockLibraryDatabase());
   }
+
+  async deleteArtwork(trackIds: number[]) {
+    await this.db.artwork.where('trackId').anyOf(trackIds).delete();
+    await this.db.tracks
+      .where('id')
+      .anyOf(trackIds)
+      .modify((track) => {
+        track.hasMetadata = 0;
+      });
+  }
 }

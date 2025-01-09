@@ -17,6 +17,6 @@ export interface TrackStore {
   findByIdentifiers(identifiers: Identifier[]): Promise<Track[]>;
   findTracksWithoutMetadata(options: ListOptions): Promise<Track[]>;
   getArtwork(track: Track): Promise<Uint8Array | null>;
-  storeArtwork(track: Track, art: Uint8Array): Promise<void>;
+  storeArtwork(track: Track, art: Uint8Array | undefined): Promise<void>;
   list(options: ListOptions): Promise<Track[]>;
 }

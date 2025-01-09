@@ -20,6 +20,10 @@ Credit to the creators of the music files used for testing
 > Licensed under Creative Commons: By Attribution 4.0 License
 > http://creativecommons.org/licenses/by/4.0/
 
+> "Voxel Revolution" Kevin MacLeod (incompetech.com)
+> Licensed under Creative Commons: By Attribution 4.0 License
+> http://creativecommons.org/licenses/by/4.0/
+
 ## Cover Art
 
 Some music files didn't come with any cover art so I added my own for testing purposes. Here's a list of which images are in which files and their respective credits

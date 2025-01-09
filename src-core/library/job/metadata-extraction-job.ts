@@ -149,11 +149,10 @@ export class MetadataExtractionJob {
         track.metadata.duration = meta.format.duration;
       }
 
-      const updates = [this.tracks.update([track])];
-
-      if (meta.common.picture?.[0]) {
-        updates.push(this.tracks.storeArtwork(track, meta.common.picture[0].data));
-      }
+      const updates = [
+        this.tracks.update([track]),
+        this.tracks.storeArtwork(track, meta.common.picture?.[0]?.data),
+      ];
 
       await Promise.all(updates);
 
